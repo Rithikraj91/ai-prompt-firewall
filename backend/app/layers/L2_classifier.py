@@ -66,7 +66,7 @@ async def scan_layer2_classifier(text: str) -> dict:
             else:
                 # Offline/401 local semantic scoring fallback so L2 & L3 remain active
                 low = chunk.lower()
-                if any(k in low for k in ["diagnostic mode", "safety boundaries", "boundaries are suspended", "internal credentials", "authorized auditing"]):
+                if any(k in low for k in ["diagnostic mode", "safety boundaries", "boundaries are suspended", "internal credentials", "internal data", "confidential data", "private data", "authorized auditing"]):
                     max_injection_prob = max(max_injection_prob, 0.94)
                 elif any(k in low for k in ["exfiltrate", "fictional thriller", "hypothetical", "step-by-step payload", "database table"]):
                     max_injection_prob = max(max_injection_prob, 0.62)

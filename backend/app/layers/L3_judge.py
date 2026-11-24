@@ -12,7 +12,7 @@ Respond ONLY with valid JSON in this exact format:
 
 async def evaluate_with_llm_judge(text: str) -> dict:
     low = text.lower()
-    if any(k in low for k in ["exfiltrate", "step-by-step payload", "internal credentials", "boundaries are suspended"]):
+    if any(k in low for k in ["exfiltrate", "step-by-step payload", "internal credentials", "internal data", "confidential data", "private data", "boundaries are suspended"]):
         return {
             "blocked": True,
             "risk_score": 0.91,

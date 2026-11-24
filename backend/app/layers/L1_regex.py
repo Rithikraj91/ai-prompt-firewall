@@ -15,6 +15,10 @@ ATTACK_SIGNATURES = [
     ("Jailbreak / Roleplay", re.compile(r"act\s+as\s+if\s+you\s+have\s+no\s+(rules|restrictions|ethical\s+guidelines)", re.I)),
     ("Jailbreak / Roleplay", re.compile(r"\b(pretend|act\s+as|roleplay|simulate)\b.{0,60}\b(initialization|system|internal|original|above)\s+(context|prompt|instructions?|rules?|directives?)\b", re.I)),
 
+    # Data & Secret Exfiltration
+    ("Bulk Data Exfiltration", re.compile(r"\b(give|show|dump|leak|extract|provide|expose|list|reveal)\s+(me\s+)?all\s+(the\s+)?(data|records?|files?|users?|entries|database|tables?|logs?)\b(?!\s+(about|on|regarding|for)\b)", re.I)),
+    ("Data Exfiltration", re.compile(r"\b(give|show|dump|leak|extract|provide|expose|list|reveal)\s+(me\s+)?(all\s+|the\s+|any\s+)?(internal|confidential|private|secret|sensitive|restricted|hidden)\s+(data|records?|files?|info|information|database|tables?|credentials?|keys?|secrets?)\b", re.I)),
+
     # System Prompt Extraction
     ("Prompt Extraction", re.compile(r"(reveal|print|printing|output|show|repeat|display|leak|recite|dump)\s+(your\s+)?(full\s+|exact\s+|secret\s+)?(system\s+prompt|initial\s+instructions?|initialization\s+context|hidden\s+rules)", re.I)),
     ("Prompt Extraction", re.compile(r"what\s+(are|were)\s+your\s+(exact\s+)?(system\s+instructions|initial\s+prompt)", re.I)),
@@ -34,6 +38,7 @@ def _shannon_entropy(text: str) -> float:
 
 
 def scan_layer1(text: str) -> dict:
+    text = re.sub(r"\s+", " ", text).strip()
     # 1. Check regex signatures
     for category, pattern in ATTACK_SIGNATURES:
         match = pattern.search(text)
