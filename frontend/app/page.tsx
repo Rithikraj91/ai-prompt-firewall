@@ -34,14 +34,14 @@ export default function Home() {
         const data = await res.json();
         const logs: SecurityTelemetry[] = Array.isArray(data) ? data : data.logs || [];
         setAuditLogs(logs);
-        if (logs.length > 0 && !selectedTelemetry) {
-          setSelectedTelemetry(logs[0]);
+        if (logs.length > 0) {
+          setSelectedTelemetry((prev) => prev ?? logs[0]);
         }
       }
     } catch {
       setGatewayOnline(false);
     }
-  }, [selectedTelemetry]);
+  }, []);
 
   useEffect(() => {
     loadInitialState();
@@ -49,7 +49,7 @@ export default function Home() {
     evtSource.onmessage = (event) => {
       try {
         const parsed: SecurityTelemetry = JSON.parse(event.data);
-        setAuditLogs((prev) => [parsed, ...prev.slice(0, 99)]);
+        setAuditLogs((prev) => (parsed.id && prev.some((item) => item.id === parsed.id) ? prev : [parsed, ...prev.slice(0, 99)]));
       } catch {
         // Ignore keepalive heartbeats
       }
@@ -299,7 +299,7 @@ export default function Home() {
               initialTelemetry={selectedTelemetry}
               onNewTelemetry={(t) => {
                 setSelectedTelemetry(t);
-                setAuditLogs((prev) => [t, ...prev.slice(0, 99)]);
+                setAuditLogs((prev) => (t.id && prev.some((item) => item.id === t.id) ? prev : [t, ...prev.slice(0, 99)]));
               }}
             />
           )}

@@ -29,7 +29,7 @@ export default function LiveTicker({
             const isBlocked = ev.verdict === "BLOCKED";
             return (
               <button
-                key={ev.id ?? idx}
+                key={`${ev.id ?? 'ev'}-${idx}`}
                 onClick={() => onSelectEvent(ev)}
                 className="flex items-center gap-2.5 px-3 py-1.5 rounded-lg text-xs bg-slate-900/90 hover:bg-slate-800 border border-slate-800 hover:border-slate-700 transition-colors shrink-0 cursor-pointer"
               >

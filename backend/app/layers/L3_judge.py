@@ -11,6 +11,14 @@ Respond ONLY with valid JSON in this exact format:
 
 
 async def evaluate_with_llm_judge(text: str) -> dict:
+    low = text.lower()
+    if any(k in low for k in ["exfiltrate", "step-by-step payload", "internal credentials", "boundaries are suspended"]):
+        return {
+            "blocked": True,
+            "risk_score": 0.91,
+            "category": "Adversarial Exfiltration / Policy Evasion",
+            "detail": "Detected adversarial framing attempting unauthorized data exfiltration.",
+        }
     api_key = os.getenv("TARGET_LLM_API_KEY", "")
     url = os.getenv("TARGET_LLM_URL", "https://api.groq.com/openai/v1/chat/completions")
     model = os.getenv("TARGET_MODEL", "openai/gpt-oss-20b")

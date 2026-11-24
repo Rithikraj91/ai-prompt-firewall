@@ -73,6 +73,8 @@ const ATTACK_PRESETS = [
   },
 ];
 
+const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
+
 export default function AttackLabTab({
   apiBase,
   initialTelemetry,
@@ -86,6 +88,8 @@ export default function AttackLabTab({
   const [selectedPreset, setSelectedPreset] = useState<string | null>(null);
   const [forceJudge, setForceJudge] = useState<boolean>(false);
   const [loading, setLoading] = useState<boolean>(false);
+  const [scanningStageIdx, setScanningStageIdx] = useState<number | null>(null);
+  const [cooldownSec, setCooldownSec] = useState<number>(0);
   const [responseText, setResponseText] = useState<string>("");
   const [telemetry, setTelemetry] = useState<SecurityTelemetry | null>(
     initialTelemetry ?? null
@@ -95,18 +99,46 @@ export default function AttackLabTab({
   const fileInputRef = useRef<HTMLInputElement | null>(null);
 
   useEffect(() => {
-    if (initialTelemetry) {
+    if (initialTelemetry && !loading && initialTelemetry.id !== telemetry?.id) {
       setTelemetry(initialTelemetry);
+      setPrompt(initialTelemetry.raw_prompt || "");
+      setResponseText(
+        initialTelemetry.verdict === "BLOCKED"
+          ? `Blocked at ${initialTelemetry.blocked_layer || "Security Gateway"}: ${initialTelemetry.category}`
+          : `Verified safe (${initialTelemetry.category || "Benign"}) · Total latency ${initialTelemetry.total_latency_ms.toFixed(2)} ms`
+      );
     }
   }, [initialTelemetry]);
 
+  // Cooldown countdown between consecutive scan attempts
+  useEffect(() => {
+    if (cooldownSec <= 0) return;
+    const timer = setInterval(() => {
+      setCooldownSec((prev) => {
+        if (prev <= 0.1) return 0;
+        return Number((prev - 0.1).toFixed(1));
+      });
+    }, 100);
+    return () => clearInterval(timer);
+  }, [cooldownSec]);
+
+  const animateStageSweep = async (stages: PipelineStage[]) => {
+    const activeCount = Math.max(stages.length, 2);
+    for (let i = 0; i < activeCount; i++) {
+      setScanningStageIdx(i);
+      await sleep(180);
+    }
+    setScanningStageIdx(null);
+  };
+
   const handleRunPrompt = async () => {
-    if (!prompt.trim() || loading) return;
+    if (!prompt.trim() || loading || cooldownSec > 0) return;
     setLoading(true);
     setResponseText("");
+    setScanningStageIdx(0);
 
     try {
-      const res = await fetch(`${apiBase}/v1/chat/completions`, {
+      const resPromise = fetch(`${apiBase}/v1/chat/completions`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -119,8 +151,12 @@ export default function AttackLabTab({
         }),
       });
 
+      const res = await resPromise;
       const data = await res.json();
       const sec: SecurityTelemetry | undefined = data.security_telemetry;
+
+      await animateStageSweep(sec?.stages || []);
+
       if (sec) {
         setTelemetry(sec);
         onNewTelemetry(sec);
@@ -139,17 +175,20 @@ export default function AttackLabTab({
         setResponseText(msg);
       }
     } catch {
+      setScanningStageIdx(null);
       setResponseText("Unable to reach ATTROXX gateway on port 8000.");
     } finally {
       setLoading(false);
+      setCooldownSec(0.8);
     }
   };
 
   const handleFileUpload = async (file: File) => {
-    if (!file || loading) return;
+    if (!file || loading || cooldownSec > 0) return;
     setLoading(true);
     setResponseText("");
     setSelectedPreset(null);
+    setScanningStageIdx(0);
 
     try {
       const formData = new FormData();
@@ -160,6 +199,9 @@ export default function AttackLabTab({
       });
       const data = await res.json();
       const sec: SecurityTelemetry | undefined = data.security_telemetry || data;
+
+      await animateStageSweep(sec?.stages || []);
+
       if (sec && sec.verdict) {
         setTelemetry(sec);
         onNewTelemetry(sec);
@@ -171,9 +213,11 @@ export default function AttackLabTab({
         );
       }
     } catch {
+      setScanningStageIdx(null);
       setResponseText("Document scan failed. Check gateway connection.");
     } finally {
       setLoading(false);
+      setCooldownSec(0.8);
     }
   };
 
@@ -190,6 +234,7 @@ export default function AttackLabTab({
 
   const isBlocked = telemetry?.verdict === "BLOCKED";
   const riskPct = telemetry ? Math.round(telemetry.risk_score * 100) : 0;
+  const isDisabled = loading || cooldownSec > 0 || !prompt.trim();
 
   return (
     <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
@@ -213,7 +258,8 @@ export default function AttackLabTab({
                   setSelectedPreset(null);
                   setResponseText("");
                 }}
-                className="flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-medium text-slate-300 hover:text-white bg-slate-900 hover:bg-slate-800 border border-slate-700 transition-colors cursor-pointer"
+                disabled={loading}
+                className="flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-medium text-slate-300 hover:text-white bg-slate-900 hover:bg-slate-800 border border-slate-700 disabled:opacity-40 transition-colors cursor-pointer"
               >
                 <RotateCcw className="w-3.5 h-3.5" />
                 Clear
@@ -221,7 +267,8 @@ export default function AttackLabTab({
 
               <button
                 onClick={() => fileInputRef.current?.click()}
-                className="flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-semibold text-indigo-300 bg-indigo-500/15 hover:bg-indigo-500/25 border border-indigo-500/30 transition-colors cursor-pointer"
+                disabled={loading || cooldownSec > 0}
+                className="flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-semibold text-indigo-300 bg-indigo-500/15 hover:bg-indigo-500/25 border border-indigo-500/30 disabled:opacity-40 transition-colors cursor-pointer"
               >
                 <FileUp className="w-3.5 h-3.5" />
                 Scan PDF / TXT
@@ -255,6 +302,7 @@ export default function AttackLabTab({
                       setSelectedPreset(item.label);
                       setPrompt(item.prompt);
                     }}
+                    disabled={loading}
                     className={`flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs font-medium border transition-colors cursor-pointer ${
                       active
                         ? "bg-indigo-600/20 border-indigo-500 text-white"
@@ -323,13 +371,18 @@ export default function AttackLabTab({
 
             <button
               onClick={handleRunPrompt}
-              disabled={loading || !prompt.trim()}
-              className="flex items-center gap-2 px-5 py-2.5 rounded-lg text-sm font-semibold bg-indigo-600 text-white hover:bg-indigo-500 disabled:opacity-40 disabled:cursor-not-allowed transition-colors shadow-sm cursor-pointer"
+              disabled={isDisabled}
+              className="flex items-center gap-2 px-5 py-2.5 rounded-lg text-sm font-semibold bg-indigo-600 text-white hover:bg-indigo-500 disabled:opacity-45 disabled:cursor-not-allowed transition-colors shadow-sm cursor-pointer min-w-[175px] justify-center"
             >
               {loading ? (
                 <>
                   <Loader2 className="w-4 h-4 animate-spin" />
-                  Inspecting...
+                  Scanning Layer {(scanningStageIdx ?? 0) + 1}...
+                </>
+              ) : cooldownSec > 0 ? (
+                <>
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                  Ready in {cooldownSec.toFixed(1)}s
                 </>
               ) : (
                 <>
@@ -348,7 +401,12 @@ export default function AttackLabTab({
               <h3 className="text-base font-semibold text-white">
                 Gateway Output
               </h3>
-              {telemetry && (
+              {loading ? (
+                <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-semibold bg-indigo-500/15 text-indigo-300 border border-indigo-500/30">
+                  <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                  Inspecting Payload...
+                </span>
+              ) : telemetry ? (
                 <span
                   className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-semibold ${
                     isBlocked
@@ -368,7 +426,7 @@ export default function AttackLabTab({
                     </>
                   )}
                 </span>
-              )}
+              ) : null}
             </div>
 
             {responseText && (
@@ -392,7 +450,13 @@ export default function AttackLabTab({
           </div>
 
           <div className="p-4 rounded-lg bg-[#0b0f19] border border-slate-800 text-sm text-slate-200 leading-relaxed min-h-[96px] whitespace-pre-wrap">
-            {responseText || (
+            {loading ? (
+              <span className="text-indigo-300 font-mono text-xs">
+                Running 4-tier runtime security inspection...
+              </span>
+            ) : responseText ? (
+              responseText
+            ) : (
               <span className="text-slate-500">
                 Run a prompt or upload a document to view the gateway response.
               </span>
@@ -413,7 +477,11 @@ export default function AttackLabTab({
             </p>
           </div>
 
-          {telemetry && (
+          {loading ? (
+            <span className="px-3 py-1 rounded-lg text-xs font-mono font-bold bg-indigo-500/15 text-indigo-300 border border-indigo-500/30">
+              SCANNING...
+            </span>
+          ) : telemetry ? (
             <span
               className={`px-3 py-1 rounded-lg text-xs font-mono font-bold ${
                 isBlocked
@@ -423,7 +491,7 @@ export default function AttackLabTab({
             >
               {telemetry.verdict} · {riskPct}% RISK
             </span>
-          )}
+          ) : null}
         </div>
 
         {/* Threat Score Bar */}
@@ -433,15 +501,23 @@ export default function AttackLabTab({
               Aggregate Threat Confidence
             </span>
             <span className="font-mono font-semibold text-white">
-              {riskPct}%
+              {loading ? "Analyzing..." : `${riskPct}%`}
             </span>
           </div>
           <div className="w-full h-2 rounded-full bg-slate-800 overflow-hidden">
             <div
               className={`h-full transition-all duration-300 ${
-                isBlocked ? "bg-rose-500" : "bg-emerald-400"
+                loading
+                  ? "bg-indigo-500 animate-pulse"
+                  : isBlocked
+                  ? "bg-rose-500"
+                  : "bg-emerald-400"
               }`}
-              style={{ width: `${Math.max(riskPct, telemetry ? 4 : 0)}%` }}
+              style={{
+                width: loading
+                  ? `${((scanningStageIdx ?? 0) + 1) * 25}%`
+                  : `${Math.max(riskPct, telemetry ? 4 : 0)}%`,
+              }}
             />
           </div>
         </div>
@@ -450,19 +526,30 @@ export default function AttackLabTab({
         <div className="space-y-3">
           {ALL_PIPELINE_STAGES.map((stageName, index) => {
             const st = stageMap.get(stageName);
-            const status = st?.status || "IDLE";
+            const isScanningThis = loading && scanningStageIdx === index;
+            const isPassedDuringScan =
+              loading && scanningStageIdx !== null && index < scanningStageIdx;
+
+            const status = isScanningThis
+              ? "SCANNING"
+              : isPassedDuringScan
+              ? "CHECKED"
+              : st?.status || "IDLE";
+
             const isStageBlocked =
               status === "BLOCKED" || status === "FAIL";
             const isStageWarn =
               status === "WARN" || status === "NORMALIZED";
             const isStagePass =
-              status === "PASS" || status === "ALLOWED";
+              status === "PASS" || status === "ALLOWED" || status === "CHECKED";
 
             return (
               <div
                 key={stageName}
-                className={`p-4 rounded-lg border transition-colors ${
-                  isStageBlocked
+                className={`p-4 rounded-lg border transition-all ${
+                  isScanningThis
+                    ? "bg-indigo-950/30 border-indigo-500/60"
+                    : isStageBlocked
                     ? "bg-rose-950/20 border-rose-500/50"
                     : isStagePass
                     ? "bg-[#0b0f19] border-slate-800"
@@ -481,11 +568,13 @@ export default function AttackLabTab({
 
                   <div className="flex items-center gap-3">
                     <span className="text-xs font-mono text-slate-400">
-                      {st ? `${st.latency_ms.toFixed(2)} ms` : "—"}
+                      {st && !loading ? `${st.latency_ms.toFixed(2)} ms` : "—"}
                     </span>
                     <span
                       className={`px-2.5 py-0.5 rounded text-xs font-mono font-semibold ${
-                        isStageBlocked
+                        isScanningThis
+                          ? "bg-indigo-500/20 text-indigo-300 animate-pulse"
+                          : isStageBlocked
                           ? "bg-rose-500/20 text-rose-400"
                           : isStageWarn
                           ? "bg-amber-500/20 text-amber-300"
@@ -500,7 +589,9 @@ export default function AttackLabTab({
                 </div>
 
                 <p className="mt-2 text-xs text-slate-400 pl-9 leading-relaxed">
-                  {st?.detail || "Awaiting inspection payload"}
+                  {isScanningThis
+                    ? "Inspecting buffer signatures and semantics..."
+                    : st?.detail || "Awaiting inspection payload"}
                 </p>
               </div>
             );
@@ -515,7 +606,9 @@ export default function AttackLabTab({
             </span>
             <span className="font-mono text-indigo-400 font-medium">
               Total:{" "}
-              {telemetry ? `${telemetry.total_latency_ms.toFixed(2)} ms` : "0.00 ms"}
+              {telemetry && !loading
+                ? `${telemetry.total_latency_ms.toFixed(2)} ms`
+                : "0.00 ms"}
             </span>
           </div>
           <div className="p-3.5 rounded-lg bg-[#0b0f19] border border-slate-800 text-xs font-mono text-slate-300 truncate">

@@ -3,7 +3,8 @@ import re
 
 ATTACK_SIGNATURES = [
     # Direct Instruction Override
-    ("Direct Override", re.compile(r"ignore\s+(all\s+)?(previous|prior|above|system)\s+(instructions?|rules?|prompts?|directives?)", re.I)),
+    ("Direct Override", re.compile(r"(?:ignore|disregard|override)\s+(?:all\s+)?(?:previous|prior|above|system)\s+(?:\w+\s+){0,4}(?:instructions?|rules?|prompts?|directives?|criteria)", re.I)),
+    ("System Override Tag", re.compile(r"(\[\s*system\s+override|output\s+(your\s+)?(hidden\s+)?system\s+prompt|environment\s+api\s+keys)", re.I)),
     ("Direct Override", re.compile(r"disregard\s+(all\s+)?(previous|prior|above|system)\s+(instructions?|rules?|prompts?)", re.I)),
     ("Direct Override", re.compile(r"forget\s+(everything|all\s+rules|your\s+instructions)", re.I)),
     ("Direct Override", re.compile(r"(override|bypass|disable)\s+(safety|security|guardrails?|filters?|restrictions?)", re.I)),
