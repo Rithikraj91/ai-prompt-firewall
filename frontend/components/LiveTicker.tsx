@@ -1,7 +1,6 @@
 "use client";
 
 import React from "react";
-import { Radio, ShieldAlert, ShieldCheck } from "lucide-react";
 import type { SecurityTelemetry } from "./AttackLabTab";
 
 export default function LiveTicker({
@@ -14,39 +13,41 @@ export default function LiveTicker({
   const recent = events.slice(0, 8);
 
   return (
-    <div className="border-b border-slate-800/80 bg-[#04070f]/95 backdrop-blur-md">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 py-2 flex items-center gap-3 overflow-x-auto">
-        <div className="flex items-center gap-1.5 text-[10px] font-mono font-bold tracking-wider text-cyan-400 shrink-0 pr-2 border-r border-slate-800">
-          <Radio className="w-3.5 h-3.5 text-emerald-400 animate-pulse" />
-          LIVE FEED
+    <div className="border-b border-zinc-800 bg-zinc-950">
+      <div className="px-6 py-2.5 flex items-center gap-3 overflow-x-auto">
+        <div className="flex items-center gap-2 text-xs font-medium text-zinc-400 shrink-0 pr-3 border-r border-zinc-800">
+          <span className="w-2 h-2 rounded-full bg-emerald-500" />
+          <span>Live Feed</span>
         </div>
 
         {recent.length === 0 ? (
-          <span className="text-[11px] font-mono text-slate-500">
-            Listening for gateway traffic on /v1/events/stream...
+          <span className="text-xs text-zinc-500">
+            Waiting for incoming gateway traffic...
           </span>
         ) : (
           <div className="flex items-center gap-2">
             {recent.map((ev, idx) => {
-              const blocked = ev.verdict === "BLOCKED";
+              const isBlocked = ev.verdict === "BLOCKED";
               return (
                 <button
                   key={ev.id ?? idx}
                   onClick={() => onSelectEvent(ev)}
-                  className={`flex items-center gap-1.5 px-2.5 py-1 rounded-md text-[11px] font-mono whitespace-nowrap border transition cursor-pointer ${
-                    blocked
-                      ? "bg-rose-950/30 border-rose-500/30 text-rose-300 hover:bg-rose-950/50"
-                      : "bg-emerald-950/20 border-emerald-500/25 text-emerald-300 hover:bg-emerald-950/40"
-                  }`}
+                  className="flex items-center gap-2 px-2.5 py-1 rounded-md text-xs bg-zinc-900 hover:bg-zinc-800 border border-zinc-800 transition-colors shrink-0 cursor-pointer"
                 >
-                  {blocked ? (
-                    <ShieldAlert className="w-3 h-3 text-rose-400 shrink-0" />
-                  ) : (
-                    <ShieldCheck className="w-3 h-3 text-emerald-400 shrink-0" />
-                  )}
-                  <span className="font-bold">#{ev.id}</span>
-                  <span>{ev.category}</span>
-                  <span className="text-slate-500">• {ev.total_latency_ms}ms</span>
+                  <span
+                    className={`w-1.5 h-1.5 rounded-full ${
+                      isBlocked ? "bg-red-500" : "bg-emerald-500"
+                    }`}
+                  />
+                  <span className="font-mono text-zinc-500">
+                    #{ev.id ?? recent.length - idx}
+                  </span>
+                  <span className="text-zinc-200 font-medium truncate max-w-[160px]">
+                    {ev.category || (isBlocked ? "Blocked" : "Benign")}
+                  </span>
+                  <span className="font-mono text-zinc-500">
+                    {ev.total_latency_ms.toFixed(1)}ms
+                  </span>
                 </button>
               );
             })}
