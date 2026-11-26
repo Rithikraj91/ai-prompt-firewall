@@ -79,13 +79,13 @@ export function getSeverityMeta(telemetry: SecurityTelemetry | null) {
   if (!telemetry) {
     return {
       label: "IDLE",
-      badgeClass: "bg-slate-800/90 text-slate-400 border-slate-700",
+      badgeClass: "bg-slate-800 text-slate-400 border-slate-700",
     };
   }
   if (telemetry.verdict === "ALLOWED") {
     return {
       label: "INFO · CLEAN",
-      badgeClass: "bg-emerald-500/15 text-emerald-300 border-emerald-500/35",
+      badgeClass: "bg-emerald-500/15 text-emerald-300 border-emerald-500/30",
     };
   }
   if (telemetry.risk_score >= 0.95) {
@@ -279,24 +279,21 @@ export default function AttackLabTab({
   ];
 
   return (
-    <div className="grid grid-cols-1 items-stretch gap-3.5 lg:grid-cols-12">
+    <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 items-stretch">
       {/* Left Column: Payload Console & Model Output */}
-      <div className="flex min-w-0 flex-col gap-3.5 lg:col-span-6">
-        <div className="attroxx-surface space-y-3.5 rounded-2xl border border-slate-800/90 p-4 sm:p-5">
-          <div className="flex flex-wrap items-start justify-between gap-2.5">
-            <div className="min-w-0">
-              <div className="flex items-center gap-2">
-                <span className="h-2 w-2 rounded-full bg-emerald-400 shadow-[0_0_8px_#10b981]" />
-                <h2 className="text-base font-semibold tracking-tight text-white">
-                  Payload &amp; Document Console
-                </h2>
-              </div>
-              <p className="mt-0.5 text-xs leading-relaxed text-slate-400 sm:text-sm">
+      <div className="lg:col-span-6 flex flex-col gap-4">
+        <div className="p-6 rounded-2xl bg-[#101820] border border-slate-800 space-y-5">
+          <div className="flex flex-wrap items-start justify-between gap-3">
+            <div>
+              <h2 className="text-lg font-semibold text-white">
+                Payload & Document Console
+              </h2>
+              <p className="text-sm text-slate-400 mt-0.5">
                 Test prompt injections or drop a PDF/TXT file for multi-chunk RAG inspection
               </p>
             </div>
 
-            <div className="flex shrink-0 items-center gap-2">
+            <div className="flex items-center gap-2">
               <button
                 onClick={() => {
                   setPrompt("");
@@ -304,18 +301,18 @@ export default function AttackLabTab({
                   setResponseText("");
                 }}
                 disabled={loading}
-                className="flex cursor-pointer items-center gap-1.5 rounded-lg border border-slate-700/80 bg-[#070b13] px-3 py-1.5 text-xs font-medium text-slate-300 hover:border-slate-600 hover:bg-slate-800/80 hover:text-white disabled:opacity-40"
+                className="flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-medium text-slate-300 hover:text-white bg-[#0b1117] hover:bg-slate-800 border border-slate-800/80 disabled:opacity-40 transition-colors cursor-pointer"
               >
-                <RotateCcw className="h-3.5 w-3.5" />
+                <RotateCcw className="w-3.5 h-3.5" />
                 Clear
               </button>
 
               <button
                 onClick={() => fileInputRef.current?.click()}
                 disabled={loading || cooldownSec > 0}
-                className="flex cursor-pointer items-center gap-1.5 rounded-lg border border-emerald-500/35 bg-emerald-500/12 px-3 py-1.5 text-xs font-semibold text-emerald-300 hover:bg-emerald-500/20 disabled:opacity-40"
+                className="flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-semibold text-emerald-300 bg-emerald-500/15 hover:bg-emerald-500/25 border border-emerald-500/30 disabled:opacity-40 transition-colors cursor-pointer"
               >
-                <FileUp className="h-3.5 w-3.5" />
+                <FileUp className="w-3.5 h-3.5" />
                 Scan PDF / TXT
               </button>
               <input
@@ -333,16 +330,11 @@ export default function AttackLabTab({
           </div>
 
           {/* Preset Pills */}
-          <div className="space-y-2">
-            <div className="flex items-center justify-between">
-              <span className="font-mono text-[10px] font-semibold uppercase tracking-[0.16em] text-slate-500">
-                Attack Scenarios
-              </span>
-              <span className="font-mono text-[10px] text-slate-500">
-                {ATTACK_PRESETS.length} PRESETS
-              </span>
+          <div className="space-y-2.5">
+            <div className="text-xs font-semibold uppercase tracking-wider text-slate-400">
+              Attack Scenarios
             </div>
-            <div className="flex flex-wrap gap-1.5">
+            <div className="flex flex-wrap gap-2">
               {ATTACK_PRESETS.map((item) => {
                 const active = selectedPreset === item.label;
                 return (
@@ -353,20 +345,14 @@ export default function AttackLabTab({
                       setPrompt(item.prompt);
                     }}
                     disabled={loading}
-                    className={`flex cursor-pointer items-center gap-1.5 rounded-lg border px-2.5 py-1 text-xs font-medium ${
+                    className={`flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs font-medium border transition-colors cursor-pointer ${
                       active
-                        ? "border-emerald-400/50 bg-emerald-500/15 text-white shadow-[0_0_16px_rgba(16,185,129,0.14)]"
-                        : "border-slate-800/90 bg-[#070b13] text-slate-300 hover:border-slate-600/80 hover:text-white"
+                        ? "bg-emerald-600/20 border-emerald-500 text-white"
+                        : "bg-[#0b1117] border-slate-800 text-slate-300 hover:border-slate-600"
                     }`}
                   >
                     <span>{item.label}</span>
-                    <span
-                      className={`rounded px-1.5 py-0.5 font-mono text-[10px] uppercase tracking-wide ${
-                        active
-                          ? "bg-emerald-500/20 text-emerald-300"
-                          : "bg-slate-900 text-slate-500"
-                      }`}
-                    >
+                    <span className="text-[11px] font-mono text-emerald-300/80">
                       {item.tag}
                     </span>
                   </button>
@@ -388,14 +374,14 @@ export default function AttackLabTab({
               const file = e.dataTransfer.files?.[0];
               if (file) handleFileUpload(file);
             }}
-            className={`attroxx-well overflow-hidden rounded-xl border transition-colors ${
+            className={`rounded-lg border transition-colors ${
               dragActive
-                ? "border-emerald-400 bg-emerald-950/30 shadow-[0_0_0_1px_rgba(52,211,153,0.4)]"
-                : "border-slate-800/90 focus-within:border-emerald-400/60"
+                ? "border-emerald-400 bg-emerald-950/20"
+                : "border-slate-800 bg-[#080c10] focus-within:border-emerald-500"
             }`}
           >
             <textarea
-              rows={4}
+              rows={5}
               value={prompt}
               onChange={(e) => setPrompt(e.target.value)}
               onKeyDown={(e) => {
@@ -405,54 +391,45 @@ export default function AttackLabTab({
                 }
               }}
               placeholder="Enter a prompt, paste an encoded payload, or drop a PDF/TXT file here..."
-              className="w-full resize-none bg-transparent p-3.5 font-mono text-sm leading-relaxed text-slate-100 placeholder:text-slate-500 focus:outline-none"
+              className="w-full p-4 bg-transparent text-sm text-slate-100 placeholder-slate-500 font-mono leading-relaxed focus:outline-none resize-none"
             />
-            <div className="flex items-center justify-between border-t border-slate-800/80 bg-[#080d16] px-3.5 py-1.5 font-mono text-[11px] text-slate-500">
-              <span className="tabular-nums">{prompt.length} characters</span>
-              <span className="flex items-center gap-1.5">
-                <kbd className="rounded border border-slate-700/80 bg-[#0c1320] px-1.5 py-0.5 text-[10px] text-slate-300">
-                  Ctrl
-                </kbd>
-                <span>+</span>
-                <kbd className="rounded border border-slate-700/80 bg-[#0c1320] px-1.5 py-0.5 text-[10px] text-slate-300">
-                  Enter
-                </kbd>
-                <span className="ml-0.5">to run</span>
-              </span>
+            <div className="px-3 py-1.5 border-t border-slate-800/90 flex items-center justify-between text-xs text-slate-400">
+              <span>{prompt.length} characters</span>
+              <span>Ctrl + Enter to run</span>
             </div>
           </div>
 
           {/* Execute Row */}
-          <div className="flex flex-wrap items-center justify-between gap-2.5">
-            <label className="flex cursor-pointer select-none items-center gap-2 rounded-lg border border-slate-800/80 bg-[#070b13] px-3 py-2 text-xs font-medium text-slate-300 hover:border-slate-700">
+          <div className="flex flex-wrap items-center justify-between gap-3 pt-1">
+            <label className="flex items-center gap-2.5 text-sm text-slate-300 cursor-pointer select-none">
               <input
                 type="checkbox"
                 checked={forceJudge}
                 onChange={(e) => setForceJudge(e.target.checked)}
-                className="h-4 w-4 rounded border-slate-600 bg-[#070b13] text-emerald-500 accent-emerald-500 focus:ring-0"
+                className="w-4 h-4 rounded border-slate-600 bg-[#0b1117] text-emerald-500 focus:ring-0"
               />
-              <span>Force Layer 3 LLM Judge review</span>
+              Force Layer 3 LLM Judge review
             </label>
 
             <button
               onClick={handleRunPrompt}
               disabled={isDisabled}
-              className="flex min-w-[178px] cursor-pointer items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-emerald-600 to-emerald-500 px-4 py-2 text-sm font-semibold text-white shadow-[0_8px_22px_rgba(16,185,129,0.28)] hover:from-emerald-500 hover:to-emerald-400 disabled:cursor-not-allowed disabled:opacity-45 disabled:shadow-none"
+              className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-semibold bg-emerald-600 text-white hover:bg-emerald-500 disabled:opacity-45 disabled:cursor-not-allowed transition-colors shadow-sm cursor-pointer min-w-[175px] justify-center"
             >
               {loading ? (
                 <>
-                  <Loader2 className="h-4 w-4 animate-spin" />
+                  <Loader2 className="w-4 h-4 animate-spin" />
                   Scanning Layer {(scanningStageIdx ?? 0) + 1}...
                 </>
               ) : cooldownSec > 0 ? (
                 <>
-                  <Loader2 className="h-4 w-4 animate-spin" />
+                  <Loader2 className="w-4 h-4 animate-spin" />
                   Ready in {cooldownSec.toFixed(1)}s
                 </>
               ) : (
                 <>
-                  <Play className="h-4 w-4 fill-current" />
-                  Inspect &amp; Execute
+                  <Play className="w-4 h-4 fill-current" />
+                  Inspect & Execute
                 </>
               )}
             </button>
@@ -460,33 +437,33 @@ export default function AttackLabTab({
         </div>
 
         {/* Gateway Decision & Model Output */}
-        <div className="attroxx-surface flex flex-1 flex-col space-y-3 rounded-2xl border border-slate-800/90 p-4 sm:p-5">
-          <div className="flex flex-wrap items-center justify-between gap-2">
-            <div className="flex flex-wrap items-center gap-2.5">
-              <h3 className="text-base font-semibold tracking-tight text-white">
+        <div className="p-6 rounded-2xl bg-[#101820] border border-slate-800 space-y-3.5">
+          <div className="flex items-center justify-between gap-2">
+            <div className="flex items-center gap-3">
+              <h3 className="text-base font-semibold text-white">
                 Gateway Output
               </h3>
               {loading ? (
-                <span className="inline-flex items-center gap-1.5 rounded-md border border-emerald-500/30 bg-emerald-500/15 px-2.5 py-0.5 text-xs font-semibold text-emerald-300">
-                  <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-semibold bg-emerald-500/15 text-emerald-300 border border-emerald-500/30">
+                  <Loader2 className="w-3.5 h-3.5 animate-spin" />
                   Inspecting Payload...
                 </span>
               ) : telemetry ? (
                 <span
-                  className={`inline-flex items-center gap-1.5 rounded-md border px-2.5 py-0.5 text-xs font-semibold ${
+                  className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-semibold ${
                     isBlocked
-                      ? "border-rose-500/35 bg-rose-500/15 text-rose-300"
-                      : "border-emerald-500/35 bg-emerald-500/15 text-emerald-300"
+                      ? "bg-rose-500/15 text-rose-400 border border-rose-500/30"
+                      : "bg-emerald-500/15 text-emerald-400 border border-emerald-500/30"
                   }`}
                 >
                   {isBlocked ? (
                     <>
-                      <ShieldAlert className="h-3.5 w-3.5" />
+                      <ShieldAlert className="w-3.5 h-3.5" />
                       Blocked ({telemetry.blocked_layer || "Guard"})
                     </>
                   ) : (
                     <>
-                      <ShieldCheck className="h-3.5 w-3.5" />
+                      <ShieldCheck className="w-3.5 h-3.5" />
                       Allowed · Canary Sealed
                     </>
                   )}
@@ -497,16 +474,16 @@ export default function AttackLabTab({
             {responseText && (
               <button
                 onClick={handleCopyOutput}
-                className="flex cursor-pointer items-center gap-1.5 rounded-lg border border-slate-800 bg-[#070b13] px-2.5 py-1 text-xs font-medium text-slate-300 hover:border-slate-700 hover:text-white"
+                className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-md text-xs font-medium text-slate-300 hover:text-white bg-[#0b1117] border border-slate-800 cursor-pointer"
               >
                 {copied ? (
                   <>
-                    <Check className="h-3.5 w-3.5 text-emerald-400" />
+                    <Check className="w-3.5 h-3.5 text-emerald-400" />
                     Copied
                   </>
                 ) : (
                   <>
-                    <Copy className="h-3.5 w-3.5" />
+                    <Copy className="w-3.5 h-3.5" />
                     Copy
                   </>
                 )}
@@ -514,9 +491,9 @@ export default function AttackLabTab({
             )}
           </div>
 
-          <div className="attroxx-well min-h-[84px] flex-1 whitespace-pre-wrap break-words rounded-xl border border-slate-800/90 p-3.5 text-sm leading-relaxed text-slate-200">
+          <div className="flex-1 p-3.5 rounded-lg bg-[#080c10] border border-slate-800 text-sm text-slate-200 leading-relaxed min-h-[96px] whitespace-pre-wrap">
             {loading ? (
-              <span className="font-mono text-xs text-emerald-300">
+              <span className="text-emerald-300 font-mono text-xs">
                 Running 4-tier runtime security inspection...
               </span>
             ) : responseText ? (
@@ -531,241 +508,223 @@ export default function AttackLabTab({
       </div>
 
       {/* Right Column: 4-Tier Pipeline Inspection Trace */}
-      <div className="attroxx-surface flex min-w-0 flex-col justify-between space-y-3.5 rounded-2xl border border-slate-800/90 p-4 sm:p-5 lg:col-span-6">
-        <div className="space-y-3.5">
-          <div className="flex flex-wrap items-start justify-between gap-2.5">
-            <div className="min-w-0">
-              <div className="flex items-center gap-2">
-                <span className="h-2 w-2 rounded-full bg-cyan-400 shadow-[0_0_8px_#22d3ee]" />
-                <h2 className="text-base font-semibold tracking-tight text-white">
-                  4-Tier Pipeline Trace
-                </h2>
-              </div>
-              <p className="mt-0.5 text-xs leading-relaxed text-slate-400 sm:text-sm">
-                Layer-by-layer inspection verdict, severity, and execution timeline
-              </p>
-            </div>
-
-            <div className="flex flex-wrap items-center gap-2">
-              {telemetry && !loading && (
-                <span
-                  className={`rounded-lg border px-2.5 py-1 font-mono text-xs font-bold ${severity.badgeClass}`}
-                >
-                  {severity.label}
-                </span>
-              )}
-
-              {loading ? (
-                <span className="rounded-lg border border-emerald-500/35 bg-emerald-500/15 px-3 py-1 font-mono text-xs font-bold text-emerald-300">
-                  SCANNING...
-                </span>
-              ) : telemetry ? (
-                <span
-                  className={`rounded-lg border px-3 py-1 font-mono text-xs font-bold ${
-                    isBlocked
-                      ? "border-rose-500/35 bg-rose-500/15 text-rose-300"
-                      : "border-emerald-500/35 bg-emerald-500/15 text-emerald-300"
-                  }`}
-                >
-                  {telemetry.verdict} · {riskPct}% RISK
-                </span>
-              ) : null}
-            </div>
+      <div className="lg:col-span-6 p-6 rounded-2xl bg-[#101820] border border-slate-800 space-y-5">
+        <div className="flex flex-wrap items-start justify-between gap-2">
+          <div>
+            <h2 className="text-lg font-semibold text-white">
+              4-Tier Pipeline Trace
+            </h2>
+            <p className="text-sm text-slate-400 mt-0.5">
+              Layer-by-layer inspection verdict, severity, and execution timeline
+            </p>
           </div>
 
-          {/* Threat Score & Proportional Execution Timeline */}
-          <div className="attroxx-well space-y-2.5 rounded-xl border border-slate-800/90 p-3">
-            <div className="space-y-1.5">
-              <div className="flex items-center justify-between text-xs">
-                <span className="font-semibold text-slate-300">
-                  Aggregate Threat Confidence
-                </span>
-                <span className="font-mono font-semibold text-white tabular-nums">
-                  {loading ? "Analyzing..." : `${riskPct}%`}
-                </span>
-              </div>
-              <div className="h-2 w-full overflow-hidden rounded-full bg-slate-800/90">
-                <div
-                  className={`h-full rounded-full transition-all duration-300 ${
-                    loading
-                      ? "bg-emerald-500 animate-pulse"
-                      : isBlocked
-                      ? "bg-gradient-to-r from-rose-600 to-rose-400"
-                      : "bg-gradient-to-r from-emerald-500 to-cyan-400"
-                  }`}
-                  style={{
-                    width: loading
-                      ? `${((scanningStageIdx ?? 0) + 1) * 25}%`
-                      : `${Math.max(riskPct, telemetry ? 4 : 0)}%`,
-                  }}
-                />
-              </div>
-            </div>
-
-            {/* Layer Latency Timeline Strip */}
-            {activeStages.length > 0 && !loading && (
-              <div className="space-y-1.5 border-t border-slate-800/80 pt-2">
-                <div className="flex items-center justify-between font-mono text-[11px] text-slate-400">
-                  <span>Execution Timeline</span>
-                  <span className="text-slate-300 tabular-nums">
-                    {telemetry?.total_latency_ms.toFixed(2)} ms total
-                  </span>
-                </div>
-                <div className="flex h-2 w-full gap-0.5 overflow-hidden rounded-full bg-slate-900">
-                  {activeStages.map((st, idx) => {
-                    const pct = Math.max(
-                      (Math.max(st.latency_ms, 0.02) / totalStageMs) * 100,
-                      6
-                    );
-                    return (
-                      <div
-                        key={st.name}
-                        title={`${st.name}: ${st.latency_ms.toFixed(2)} ms`}
-                        className={`h-full ${
-                          st.status === "BLOCK" || st.status === "BLOCKED"
-                            ? "bg-rose-500"
-                            : segmentColors[idx % segmentColors.length]
-                        }`}
-                        style={{ width: `${pct}%` }}
-                      />
-                    );
-                  })}
-                </div>
-              </div>
+          <div className="flex items-center gap-2">
+            {telemetry && !loading && (
+              <span
+                className={`px-2.5 py-1 rounded-lg text-xs font-mono font-bold border ${severity.badgeClass}`}
+              >
+                {severity.label}
+              </span>
             )}
-          </div>
 
-          {/* 4 Stage Cards with Vertical Pipeline Trace */}
-          <div className="relative space-y-2">
-            <div className="pointer-events-none absolute top-5 bottom-5 left-[23px] hidden w-px bg-slate-800/90 sm:block" />
-            {ALL_PIPELINE_STAGES.map((stageName, index) => {
-              const st = stageMap.get(stageName);
-              const isScanningThis = loading && scanningStageIdx === index;
-              const isPassedDuringScan =
-                loading && scanningStageIdx !== null && index < scanningStageIdx;
-
-              const status = isScanningThis
-                ? "SCANNING"
-                : isPassedDuringScan
-                ? "CHECKED"
-                : st?.status || "IDLE";
-
-              const isStageBlocked =
-                status === "BLOCKED" || status === "BLOCK" || status === "FAIL";
-              const isStageWarn =
-                status === "WARN" ||
-                status === "NORMALIZED" ||
-                status === "ESCALATE";
-              const isStagePass =
-                status === "PASS" || status === "ALLOWED" || status === "CHECKED";
-
-              return (
-                <div
-                  key={stageName}
-                  className={`relative rounded-xl border px-3 py-2.5 transition-all ${
-                    isScanningThis
-                      ? "border-emerald-500/60 bg-emerald-950/30 shadow-[0_0_20px_rgba(16,185,129,0.12)]"
-                      : isStageBlocked
-                      ? "border-rose-500/50 bg-rose-950/20"
-                      : isStagePass
-                      ? "border-slate-800/90 bg-[#070b13]"
-                      : "border-slate-800/75 bg-[#070b13]/75"
-                  }`}
-                >
-                  <div className="flex items-center justify-between gap-2">
-                    <div className="flex min-w-0 items-center gap-2.5">
-                      <span
-                        className={`relative z-10 flex h-6 w-6 shrink-0 items-center justify-center rounded-md border font-mono text-xs font-semibold ${
-                          isScanningThis
-                            ? "border-emerald-400/60 bg-emerald-500/20 text-emerald-300"
-                            : isStageBlocked
-                            ? "border-rose-500/40 bg-rose-500/20 text-rose-300"
-                            : isStagePass
-                            ? "border-emerald-500/30 bg-emerald-500/15 text-emerald-300"
-                            : "border-slate-700/80 bg-slate-800/90 text-slate-300"
-                        }`}
-                      >
-                        {index + 1}
-                      </span>
-                      <span className="truncate text-sm font-semibold text-slate-100">
-                        {stageName}
-                      </span>
-                    </div>
-
-                    <div className="flex shrink-0 items-center gap-2">
-                      <span className="font-mono text-xs text-slate-400 tabular-nums">
-                        {st && !loading ? `${st.latency_ms.toFixed(2)} ms` : "—"}
-                      </span>
-                      <span
-                        className={`rounded-md border px-2 py-0.5 font-mono text-[11px] font-semibold ${
-                          isScanningThis
-                            ? "border-emerald-500/35 bg-emerald-500/20 text-emerald-300 animate-pulse"
-                            : isStageBlocked
-                            ? "border-rose-500/30 bg-rose-500/15 text-rose-300"
-                            : isStageWarn
-                            ? "border-amber-500/30 bg-amber-500/15 text-amber-300"
-                            : isStagePass
-                            ? "border-emerald-500/30 bg-emerald-500/15 text-emerald-300"
-                            : "border-slate-700/80 bg-slate-800/80 text-slate-400"
-                        }`}
-                      >
-                        {status}
-                      </span>
-                    </div>
-                  </div>
-
-                  <p className="mt-1 pl-8.5 text-xs leading-snug text-slate-400">
-                    {isScanningThis
-                      ? "Inspecting buffer signatures and semantics..."
-                      : st?.detail || "Awaiting inspection payload"}
-                  </p>
-                </div>
-              );
-            })}
+            {loading ? (
+              <span className="px-3 py-1 rounded-lg text-xs font-mono font-bold bg-emerald-500/15 text-emerald-300 border border-emerald-500/30">
+                SCANNING...
+              </span>
+            ) : telemetry ? (
+              <span
+                className={`px-3 py-1 rounded-lg text-xs font-mono font-bold ${
+                  isBlocked
+                    ? "bg-rose-500/15 text-rose-400 border border-rose-500/30"
+                    : "bg-emerald-500/15 text-emerald-400 border border-emerald-500/30"
+                }`}
+              >
+                {telemetry.verdict} · {riskPct}% RISK
+              </span>
+            ) : null}
           </div>
         </div>
 
+        {/* Threat Score & Proportional Execution Timeline */}
+        <div className="p-3 rounded-lg bg-[#080c10] border border-slate-800 space-y-3.5">
+          <div className="space-y-1.5">
+            <div className="flex items-center justify-between text-xs">
+              <span className="font-semibold text-slate-300">
+                Aggregate Threat Confidence
+              </span>
+              <span className="font-mono font-semibold text-white">
+                {loading ? "Analyzing..." : `${riskPct}%`}
+              </span>
+            </div>
+            <div className="w-full h-2 rounded-full bg-slate-800 overflow-hidden">
+              <div
+                className={`h-full transition-all duration-300 ${
+                  loading
+                    ? "bg-emerald-500 animate-pulse"
+                    : isBlocked
+                    ? "bg-rose-500"
+                    : "bg-emerald-400"
+                }`}
+                style={{
+                  width: loading
+                    ? `${((scanningStageIdx ?? 0) + 1) * 25}%`
+                    : `${Math.max(riskPct, telemetry ? 4 : 0)}%`,
+                }}
+              />
+            </div>
+          </div>
+
+          {/* Layer Latency Timeline Strip */}
+          {activeStages.length > 0 && !loading && (
+            <div className="pt-2 border-t border-slate-800/80 space-y-1.5">
+              <div className="flex items-center justify-between text-[11px] font-mono text-slate-400">
+                <span>Execution Timeline</span>
+                <span>{telemetry?.total_latency_ms.toFixed(2)} ms total</span>
+              </div>
+              <div className="w-full h-2 rounded-full bg-slate-900 overflow-hidden flex gap-0.5">
+                {activeStages.map((st, idx) => {
+                  const pct = Math.max(
+                    (Math.max(st.latency_ms, 0.02) / totalStageMs) * 100,
+                    6
+                  );
+                  return (
+                    <div
+                      key={st.name}
+                      title={`${st.name}: ${st.latency_ms.toFixed(2)} ms`}
+                      className={`h-full ${
+                        st.status === "BLOCK" || st.status === "BLOCKED"
+                          ? "bg-rose-500"
+                          : segmentColors[idx % segmentColors.length]
+                      }`}
+                      style={{ width: `${pct}%` }}
+                    />
+                  );
+                })}
+              </div>
+            </div>
+          )}
+        </div>
+
+        {/* 4 Stage Cards */}
+        <div className="space-y-3">
+          {ALL_PIPELINE_STAGES.map((stageName, index) => {
+            const st = stageMap.get(stageName);
+            const isScanningThis = loading && scanningStageIdx === index;
+            const isPassedDuringScan =
+              loading && scanningStageIdx !== null && index < scanningStageIdx;
+
+            const status = isScanningThis
+              ? "SCANNING"
+              : isPassedDuringScan
+              ? "CHECKED"
+              : st?.status || "IDLE";
+
+            const isStageBlocked =
+              status === "BLOCKED" || status === "BLOCK" || status === "FAIL";
+            const isStageWarn =
+              status === "WARN" ||
+              status === "NORMALIZED" ||
+              status === "ESCALATE";
+            const isStagePass =
+              status === "PASS" || status === "ALLOWED" || status === "CHECKED";
+
+            return (
+              <div
+                key={stageName}
+                className={`p-3 rounded-lg border transition-all ${
+                  isScanningThis
+                    ? "bg-emerald-950/30 border-emerald-500/60"
+                    : isStageBlocked
+                    ? "bg-rose-950/20 border-rose-500/50"
+                    : isStagePass
+                    ? "bg-[#080c10] border-slate-800"
+                    : "bg-[#080c10]/70 border-slate-800/80"
+                }`}
+              >
+                <div className="flex items-center justify-between gap-2">
+                  <div className="flex items-center gap-3">
+                    <span className="w-6 h-6 rounded-md bg-slate-800 text-slate-300 flex items-center justify-center text-xs font-mono font-semibold">
+                      {index + 1}
+                    </span>
+                    <span className="text-sm font-semibold text-slate-100">
+                      {stageName}
+                    </span>
+                  </div>
+
+                  <div className="flex items-center gap-3">
+                    <span className="text-xs font-mono text-slate-400">
+                      {st && !loading ? `${st.latency_ms.toFixed(2)} ms` : "—"}
+                    </span>
+                    <span
+                      className={`px-2.5 py-0.5 rounded text-xs font-mono font-semibold ${
+                        isScanningThis
+                          ? "bg-emerald-500/20 text-emerald-300 animate-pulse"
+                          : isStageBlocked
+                          ? "bg-rose-500/20 text-rose-400"
+                          : isStageWarn
+                          ? "bg-amber-500/20 text-amber-300"
+                          : isStagePass
+                          ? "bg-emerald-500/20 text-emerald-400"
+                          : "bg-slate-800 text-slate-400"
+                      }`}
+                    >
+                      {status}
+                    </span>
+                  </div>
+                </div>
+
+                <p className="mt-2 text-xs text-slate-400 pl-9 leading-relaxed">
+                  {isScanningThis
+                    ? "Inspecting buffer signatures and semantics..."
+                    : st?.detail || "Awaiting inspection payload"}
+                </p>
+              </div>
+            );
+          })}
+        </div>
+
         {/* Normalized Inspection Buffer + Incident Forensics */}
-        <div className="space-y-2.5 border-t border-slate-800/80 pt-3">
+        <div className="pt-3 border-t border-slate-800 space-y-3">
           <div className="space-y-1.5">
             <div className="flex items-center justify-between text-xs">
               <span className="font-semibold text-slate-300">
                 Normalized Inspection Buffer
               </span>
-              <span className="font-mono font-medium text-emerald-400 tabular-nums">
+              <span className="font-mono text-emerald-400 font-medium">
                 Total:{" "}
                 {telemetry && !loading
                   ? `${telemetry.total_latency_ms.toFixed(2)} ms`
                   : "0.00 ms"}
               </span>
             </div>
-            <div className="attroxx-well min-w-0 truncate rounded-lg border border-slate-800/90 px-3 py-2 font-mono text-xs text-slate-300">
+            <div className="p-3 rounded-lg bg-[#080c10] border border-slate-800 text-xs font-mono text-slate-300 truncate">
               {telemetry?.normalized_prompt || "—"}
             </div>
           </div>
 
-          <div className="grid grid-cols-1 gap-2.5 sm:grid-cols-3">
-            <div className="attroxx-well min-w-0 rounded-lg border border-slate-800/90 px-3 py-2">
-              <div className="font-mono text-[10px] font-semibold uppercase tracking-wider text-slate-500">
+          <div className="grid grid-cols-3 gap-2.5 pt-1">
+            <div className="p-2.5 rounded-lg bg-[#080c10] border border-slate-800">
+              <div className="text-[10px] uppercase tracking-wider text-slate-500 font-semibold">
                 Event ID
               </div>
-              <div className="mt-0.5 truncate font-mono text-xs font-semibold text-slate-200">
+              <div className="text-xs font-mono font-semibold text-slate-200 mt-0.5">
                 {telemetry?.id ? `#${telemetry.id}` : "LIVE"}
               </div>
             </div>
-            <div className="attroxx-well min-w-0 rounded-lg border border-slate-800/90 px-3 py-2">
-              <div className="font-mono text-[10px] font-semibold uppercase tracking-wider text-slate-500">
+            <div className="p-2.5 rounded-lg bg-[#080c10] border border-slate-800">
+              <div className="text-[10px] uppercase tracking-wider text-slate-500 font-semibold">
                 Vector Class
               </div>
-              <div className="mt-0.5 truncate font-mono text-xs font-semibold text-emerald-300">
+              <div className="text-xs font-mono font-semibold text-emerald-300 mt-0.5 truncate">
                 {telemetry?.category || "Benign"}
               </div>
             </div>
-            <div className="attroxx-well min-w-0 rounded-lg border border-slate-800/90 px-3 py-2">
-              <div className="font-mono text-[10px] font-semibold uppercase tracking-wider text-slate-500">
+            <div className="p-2.5 rounded-lg bg-[#080c10] border border-slate-800">
+              <div className="text-[10px] uppercase tracking-wider text-slate-500 font-semibold">
                 Source Channel
               </div>
-              <div className="mt-0.5 truncate font-mono text-xs font-semibold text-slate-200">
+              <div className="text-xs font-mono font-semibold text-slate-200 mt-0.5 truncate">
                 {telemetry?.source || "playground"}
               </div>
             </div>

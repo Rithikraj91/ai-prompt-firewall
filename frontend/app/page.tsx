@@ -8,6 +8,7 @@ import {
   Download,
   FileText,
   Lock,
+  Shield,
   ShieldAlert,
   ShieldCheck,
   Terminal,
@@ -100,94 +101,85 @@ export default function Home() {
     URL.revokeObjectURL(url);
   };
 
-  const navItemClass = (active: boolean) =>
-    `relative flex shrink-0 items-center gap-2.5 whitespace-nowrap rounded-xl border px-3 py-2 text-left text-sm font-medium cursor-pointer lg:w-full lg:whitespace-normal ${
-      active
-        ? "border-emerald-400/35 bg-gradient-to-r from-emerald-500/15 via-emerald-500/8 to-transparent text-white shadow-[inset_0_1px_0_rgba(110,231,183,0.12)]"
-        : "border-transparent text-slate-400 hover:border-slate-800 hover:bg-white/[0.025] hover:text-slate-100"
-    }`;
-
   return (
-    <div className="flex min-h-screen flex-col text-slate-100 lg:h-screen lg:flex-row lg:overflow-hidden">
-      <aside className="flex w-full shrink-0 flex-col border-b border-slate-800/80 bg-[#090e17]/95 backdrop-blur-md lg:h-screen lg:w-[284px] lg:overflow-y-auto lg:border-b-0 lg:border-r">
+    <div className="min-h-screen bg-[#070b14] text-slate-100 flex">
+      <aside className="w-72 border-r border-slate-800/80 bg-[#0a0f1c] flex flex-col justify-between p-4 shrink-0">
         <div>
-          <div className="border-b border-slate-800/80 p-3">
+          <div className="pb-4 mb-4 border-b border-slate-800/80">
             <AttroxxLogo />
           </div>
+{/* Primary Navigation */}
+          <nav className="p-4 space-y-1.5">
+            <div className="px-3 py-1.5 text-xs font-semibold uppercase tracking-wider text-slate-500">
+              SOC Console
+            </div>
 
-          <nav className="px-3 py-2.5">
-            <div className="flex items-center justify-between px-2.5 pb-1.5">
-              <span className="font-mono text-[10px] font-semibold uppercase tracking-[0.18em] text-slate-500">
-                SOC Console
+            <button
+              onClick={() => setActiveTab("lab")}
+              className={`w-full flex items-center gap-3 px-3.5 py-2.5 rounded-lg text-sm font-medium transition-colors cursor-pointer ${
+                activeTab === "lab"
+                  ? "bg-emerald-600/15 text-white border border-emerald-500/30"
+                  : "text-slate-400 hover:text-slate-100 hover:bg-slate-800/60"
+              }`}
+            >
+              <Terminal
+                className={`w-4 h-4 ${
+                  activeTab === "lab" ? "text-emerald-400" : "text-slate-400"
+                }`}
+              />
+              Inspection Lab
+            </button>
+
+            <button
+              onClick={() => setActiveTab("analytics")}
+              className={`w-full flex items-center gap-3 px-3.5 py-2.5 rounded-lg text-sm font-medium transition-colors cursor-pointer ${
+                activeTab === "analytics"
+                  ? "bg-emerald-600/15 text-white border border-emerald-500/30"
+                  : "text-slate-400 hover:text-slate-100 hover:bg-slate-800/60"
+              }`}
+            >
+              <BarChart3
+                className={`w-4 h-4 ${
+                  activeTab === "analytics" ? "text-emerald-400" : "text-slate-400"
+                }`}
+              />
+              Threat & Benchmark Analytics
+            </button>
+
+            <button
+              onClick={() => setActiveTab("ledger")}
+              className={`w-full flex items-center justify-between px-3.5 py-2.5 rounded-lg text-sm font-medium transition-colors cursor-pointer ${
+                activeTab === "ledger"
+                  ? "bg-emerald-600/15 text-white border border-emerald-500/30"
+                  : "text-slate-400 hover:text-slate-100 hover:bg-slate-800/60"
+              }`}
+            >
+              <span className="flex items-center gap-3">
+                <FileText
+                  className={`w-4 h-4 ${
+                    activeTab === "ledger" ? "text-emerald-400" : "text-slate-400"
+                  }`}
+                />
+                Incident Ledger
               </span>
-              <span className="font-mono text-[10px] text-slate-600">GATEWAY</span>
-            </div>
-
-            <div className="flex gap-1.5 overflow-x-auto lg:flex-col lg:overflow-visible">
-              <button
-                onClick={() => setActiveTab("lab")}
-                className={navItemClass(activeTab === "lab")}
-              >
-                {activeTab === "lab" && (
-                  <span className="hidden lg:block absolute left-0 top-2 bottom-2 w-0.5 rounded-r bg-emerald-400 shadow-[0_0_8px_#10b981]" />
-                )}
-                <Terminal
-                  className={`h-4 w-4 shrink-0 ${
-                    activeTab === "lab" ? "text-emerald-400" : "text-slate-500"
-                  }`}
-                />
-                <span>Inspection Lab</span>
-              </button>
-
-              <button
-                onClick={() => setActiveTab("analytics")}
-                className={navItemClass(activeTab === "analytics")}
-              >
-                {activeTab === "analytics" && (
-                  <span className="hidden lg:block absolute left-0 top-2 bottom-2 w-0.5 rounded-r bg-emerald-400 shadow-[0_0_8px_#10b981]" />
-                )}
-                <BarChart3
-                  className={`h-4 w-4 shrink-0 ${
-                    activeTab === "analytics" ? "text-emerald-400" : "text-slate-500"
-                  }`}
-                />
-                <span>Threat &amp; Benchmark Analytics</span>
-              </button>
-
-              <button
-                onClick={() => setActiveTab("ledger")}
-                className={`${navItemClass(activeTab === "ledger")} justify-between`}
-              >
-                {activeTab === "ledger" && (
-                  <span className="hidden lg:block absolute left-0 top-2 bottom-2 w-0.5 rounded-r bg-emerald-400 shadow-[0_0_8px_#10b981]" />
-                )}
-                <span className="flex items-center gap-2.5">
-                  <FileText
-                    className={`h-4 w-4 shrink-0 ${
-                      activeTab === "ledger" ? "text-emerald-400" : "text-slate-500"
-                    }`}
-                  />
-                  <span>Incident Ledger</span>
-                </span>
-                <span className="rounded-md border border-slate-700/80 bg-[#070b13] px-2 py-0.5 font-mono text-[11px] font-semibold text-slate-300 tabular-nums">
-                  {auditLogs.length}
-                </span>
-              </button>
-            </div>
+              <span className="text-xs font-mono px-2 py-0.5 rounded-full bg-slate-800 text-slate-300">
+                {auditLogs.length}
+              </span>
+            </button>
           </nav>
 
-          {/* 4-Tier Defense Layer Cards */}
-          <div className="space-y-2.5 border-t border-slate-800/80 px-3 py-3">
+          {/* Upgraded 4-Tier Defense Layer Cards */}
+          <div className="px-4 py-4 mt-1 border-t border-slate-800/80 space-y-3">
             <div className="flex items-center justify-between px-1">
-              <span className="font-mono text-[10px] font-semibold uppercase tracking-[0.18em] text-slate-500">
+              <span className="text-xs font-bold uppercase tracking-[0.15em] text-slate-400">
                 Defense Layers
               </span>
-              <span className="rounded border border-emerald-500/25 bg-emerald-500/10 px-1.5 py-0.5 font-mono text-[10px] font-semibold text-emerald-300">
+              <span className="text-[11px] font-mono text-emerald-400/80">
                 4-TIER
               </span>
             </div>
 
-            <div className="grid gap-1.5 sm:grid-cols-2 lg:grid-cols-1">
+            <div className="space-y-2.5">
               {[
                 {
                   code: "L0",
@@ -220,37 +212,37 @@ export default function Home() {
               ].map((layer) => (
                 <div
                   key={layer.code}
-                  className="attroxx-well flex items-center justify-between gap-2 rounded-xl border border-slate-800/90 px-2.5 py-2 hover:border-emerald-500/35"
+                  className="p-3 rounded-xl bg-[#080c10]/95 border border-slate-800/90 hover:border-emerald-500/35 transition-all flex items-center justify-between gap-2.5"
                 >
-                  <div className="flex min-w-0 items-center gap-2">
+                  <div className="flex items-center gap-2.5 min-w-0">
                     <span
-                      className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-lg border font-mono text-[11px] font-bold ${
+                      className={`w-8 h-8 rounded-lg font-mono text-xs font-extrabold flex items-center justify-center shrink-0 border ${
                         layer.active
-                          ? "border-emerald-500/35 bg-emerald-500/15 text-emerald-300 shadow-[0_0_12px_rgba(16,185,129,0.16)]"
-                          : "border-amber-500/35 bg-amber-500/15 text-amber-300"
+                          ? "bg-emerald-500/15 text-emerald-300 border-emerald-500/30 shadow-[0_0_10px_rgba(16,185,129,0.18)]"
+                          : "bg-amber-500/15 text-amber-300 border-amber-500/30"
                       }`}
                     >
                       {layer.code}
                     </span>
                     <div className="min-w-0">
-                      <div className="truncate text-[13px] font-semibold leading-tight text-slate-100">
+                      <div className="text-sm font-semibold text-slate-100 truncate">
                         {layer.name}
                       </div>
-                      <div className="mt-0.5 truncate text-[11px] leading-tight text-slate-400">
+                      <div className="text-[11px] text-slate-400 truncate">
                         {layer.desc}
                       </div>
                     </div>
                   </div>
 
                   <span
-                    className={`inline-flex shrink-0 items-center gap-1.5 rounded-md border px-2 py-0.5 font-mono text-[10px] font-semibold ${
+                    className={`inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md text-[11px] font-mono font-semibold shrink-0 ${
                       layer.active
-                        ? "border-emerald-500/25 bg-emerald-500/10 text-emerald-300"
-                        : "border-amber-500/25 bg-amber-500/10 text-amber-300"
+                        ? "bg-emerald-500/10 text-emerald-400 border border-emerald-500/25"
+                        : "bg-amber-500/10 text-amber-400 border border-amber-500/25"
                     }`}
                   >
                     <span
-                      className={`h-1.5 w-1.5 rounded-full ${
+                      className={`w-1.5 h-1.5 rounded-full ${
                         layer.active ? "bg-emerald-400 animate-pulse" : "bg-amber-400"
                       }`}
                     />
@@ -260,18 +252,18 @@ export default function Home() {
               ))}
             </div>
 
-            {/* Gateway Hardening Posture Card */}
-            <div className="space-y-2 border-t border-slate-800/80 pt-2.5">
+            {/* Gateway Hardening Posture Card to balance sidebar space */}
+            <div className="pt-3 mt-3 border-t border-slate-800/80 space-y-2.5">
               <div className="flex items-center justify-between px-1">
-                <span className="font-mono text-[10px] font-semibold uppercase tracking-[0.18em] text-slate-500">
+                <span className="text-xs font-bold uppercase tracking-[0.15em] text-slate-400">
                   Gateway Posture
                 </span>
-                <span className="font-mono text-[10px] font-semibold tracking-wider text-cyan-300">
+                <span className="text-[10px] font-mono text-cyan-400">
                   HARDENED
                 </span>
               </div>
 
-              <div className="attroxx-well space-y-1.5 rounded-xl border border-slate-800/90 px-3 py-2.5 text-xs">
+              <div className="p-3 rounded-xl bg-[#080c10]/95 border border-slate-800/90 space-y-2 text-xs">
                 <div className="flex items-center justify-between">
                   <span className="text-slate-400">Failure Policy</span>
                   <span className="font-mono font-semibold text-cyan-300">
@@ -280,74 +272,71 @@ export default function Home() {
                 </div>
                 <div className="flex items-center justify-between">
                   <span className="text-slate-400">Burst Guard</span>
-                  <span className="font-mono text-slate-200 tabular-nums">
+                  <span className="font-mono text-slate-200">
                     {policy ? `${policy.rate_limit_rpm} RPM` : "120 RPM"}
                   </span>
                 </div>
                 <div className="flex items-center justify-between">
                   <span className="text-slate-400">Log Redaction</span>
-                  <span className="font-mono text-emerald-400">Keys &amp; Canary</span>
+                  <span className="font-mono text-emerald-400">
+                    Keys &amp; Canary
+                  </span>
                 </div>
                 <div className="flex items-center justify-between">
                   <span className="text-slate-400">RAG Chunking</span>
-                  <span className="font-mono text-slate-200">450c / 150 overlap</span>
+                  <span className="font-mono text-slate-200">
+                    450c / 150 overlap
+                  </span>
                 </div>
               </div>
             </div>
           </div>
         </div>
 
-        <div className="mt-auto border-t border-slate-800/80 p-3">
+        <div className="p-4 border-t border-slate-800">
           <button
             onClick={handleExportJson}
-            className="flex w-full cursor-pointer items-center justify-center gap-2 rounded-xl border border-slate-700/80 bg-[#0b111c] px-4 py-2 text-sm font-medium text-slate-200 shadow-[inset_0_1px_0_rgba(255,255,255,0.04)] hover:border-emerald-500/40 hover:bg-slate-800/80 hover:text-white"
+            className="w-full flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg text-sm font-medium bg-[#0b1117] hover:bg-slate-800 text-slate-200 border border-slate-800/80 transition-colors cursor-pointer"
           >
-            <Download className="h-4 w-4 text-emerald-400" />
+            <Download className="w-4 h-4 text-emerald-400" />
             Export Audit JSON
           </button>
         </div>
       </aside>
 
       {/* Main Content */}
-      <div className="flex min-w-0 flex-1 flex-col lg:overflow-y-auto">
-        <header className="sticky top-0 z-20 flex min-h-[52px] flex-wrap items-center justify-between gap-x-4 gap-y-2 border-b border-slate-800/80 bg-[#090e17]/90 px-4 py-2 backdrop-blur-xl lg:px-5">
-          <div className="flex min-w-0 items-center gap-2.5 text-sm">
-            <span className="shrink-0 font-mono text-[11px] uppercase tracking-[0.14em] text-slate-500">
-              Proxy Endpoint
-            </span>
-            <code className="truncate rounded-lg border border-slate-800 bg-[#070b13] px-2.5 py-1 font-mono text-xs text-emerald-300 shadow-[inset_0_1px_2px_rgba(0,0,0,0.4)]">
+      <div className="flex-1 flex flex-col min-w-0">
+        {/* Top Bar with Gateway Hardening Posture */}
+        <header className="h-14 px-4 lg:px-6 border-b border-slate-800 bg-[#0c141b] flex flex-wrap items-center justify-between gap-3">
+          <div className="flex items-center gap-3 text-sm">
+            <span className="text-slate-400 font-medium">Proxy Endpoint</span>
+            <code className="px-3 py-1 rounded-md bg-[#0b1117] border border-slate-800 text-emerald-300 font-mono text-xs">
               POST /v1/chat/completions
             </code>
           </div>
 
-          <div className="flex flex-wrap items-center justify-end gap-2">
+          <div className="flex items-center gap-2.5">
             {policy && (
               <>
-                <span className="hidden items-center gap-1.5 rounded-lg border border-cyan-500/20 bg-cyan-500/8 px-2.5 py-1 font-mono text-[11px] font-medium text-cyan-300 md:inline-flex">
-                  <ShieldCheck className="h-3.5 w-3.5 text-cyan-400" />
+                <span className="hidden md:inline-flex items-center gap-1.5 text-[11px] font-mono px-2.5 py-1 rounded-md bg-[#0b1117] border border-slate-800 text-cyan-300">
+                  <ShieldCheck className="w-3.5 h-3.5 text-cyan-400" />
                   {policy.failure_mode.toUpperCase()}
                 </span>
-                <span className="hidden items-center gap-1.5 rounded-lg border border-slate-800 bg-[#070b13] px-2.5 py-1 font-mono text-[11px] text-slate-300 lg:inline-flex">
+                <span className="hidden lg:inline-flex items-center gap-1.5 text-[11px] font-mono px-2.5 py-1 rounded-md bg-[#0b1117] border border-slate-800 text-slate-300">
                   {policy.rate_limit_rpm} RPM · PII/KEY REDACT
                 </span>
               </>
             )}
 
-            <div
-              className={`flex items-center gap-2 rounded-full border px-3 py-1 text-xs font-semibold ${
-                gatewayOnline
-                  ? "border-emerald-500/30 bg-emerald-500/10 text-emerald-200"
-                  : "border-rose-500/30 bg-rose-500/10 text-rose-200"
-              }`}
-            >
+            <div className="flex items-center gap-2.5 text-xs font-semibold px-3.5 py-1.5 rounded-full bg-[#0b1117] border border-slate-800">
               <span
-                className={`h-2 w-2 rounded-full ${
-                  gatewayOnline
-                    ? "bg-emerald-400 shadow-[0_0_8px_#10b981] animate-pulse"
-                    : "bg-rose-500"
+                className={`w-2.5 h-2.5 rounded-full ${
+                  gatewayOnline ? "bg-emerald-400 animate-pulse" : "bg-rose-500"
                 }`}
               />
-              <span>{gatewayOnline ? "Gateway Online" : "Gateway Offline"}</span>
+              <span className="text-slate-200">
+                {gatewayOnline ? "Gateway Online" : "Gateway Offline"}
+              </span>
             </div>
           </div>
         </header>
@@ -361,39 +350,32 @@ export default function Home() {
           }}
         />
 
-        {/* Workspace Body */}
-        <main className="w-full flex-1 space-y-3.5 p-4 lg:p-5">
-          <div className="grid grid-cols-1 gap-3.5 sm:grid-cols-2 xl:grid-cols-4">
-            <div className="attroxx-surface relative overflow-hidden rounded-2xl border border-slate-800/90 px-4 py-3.5">
-              <div className="absolute inset-x-0 top-0 h-[2px] bg-gradient-to-r from-emerald-400/90 via-emerald-400/40 to-transparent" />
-              <div className="flex items-center justify-between gap-2">
-                <span className="font-mono text-[11px] font-semibold uppercase tracking-[0.14em] text-slate-400">
-                  Total Inspected
-                </span>
-                <span className="flex h-7 w-7 items-center justify-center rounded-lg border border-emerald-500/25 bg-emerald-500/10 text-emerald-400">
-                  <Activity className="h-3.5 w-3.5" />
-                </span>
+        {/* Full-Width Workspace Body */}
+        <main className="flex-1 p-5 lg:p-6 w-full space-y-4">
+          {/* 4 Bold KPI Cards */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
+            <div className="p-5 rounded-2xl bg-[#101820] border border-slate-800 border-l-4 border-l-emerald-500">
+              <div className="flex items-center justify-between text-sm font-medium text-slate-400">
+                <span>Total Inspected</span>
+                <Activity className="w-4 h-4 text-emerald-400" />
               </div>
-              <div className="mt-2 text-2xl font-semibold tracking-tight text-white tabular-nums xl:text-[1.7rem]">
+              <div className="mt-2.5 text-3xl font-bold tracking-tight text-white">
                 {metrics.total}
               </div>
-              <div className="mt-1 text-xs text-slate-400">
-                Chat &amp; RAG payloads scanned
+              <div className="mt-1 text-[10px] font-mono uppercase tracking-[0.18em] text-emerald-400/80">
+                Chat & RAG payloads scanned
               </div>
             </div>
 
-            <div className="attroxx-surface relative overflow-hidden rounded-2xl border border-slate-800/90 px-4 py-3.5">
-              <div className="absolute inset-x-0 top-0 h-[2px] bg-gradient-to-r from-rose-400/90 via-rose-400/40 to-transparent" />
-              <div className="flex items-center justify-between gap-2">
-                <span className="font-mono text-[11px] font-semibold uppercase tracking-[0.14em] text-slate-400">
-                  Threats Blocked
-                </span>
-                <span className="inline-flex items-center gap-1 rounded-md border border-rose-500/30 bg-rose-500/12 px-2 py-0.5 font-mono text-[11px] font-semibold text-rose-300 tabular-nums">
-                  <ShieldAlert className="h-3 w-3" />
+            <div className="p-5 rounded-2xl bg-[#101820] border border-slate-800 border-l-4 border-l-rose-500">
+              <div className="flex items-center justify-between text-sm font-medium text-slate-400">
+                <span>Threats Blocked</span>
+                <span className="inline-flex items-center gap-1 text-xs font-mono font-semibold px-2 py-0.5 rounded bg-rose-500/15 text-rose-400">
+                  <ShieldAlert className="w-3.5 h-3.5" />
                   {metrics.blockRate}%
                 </span>
               </div>
-              <div className="mt-2 text-2xl font-semibold tracking-tight text-white tabular-nums xl:text-[1.7rem]">
+              <div className="mt-2.5 text-3xl font-bold tracking-tight text-white">
                 {metrics.blocked}
               </div>
               <div className="mt-1 text-xs text-slate-400">
@@ -401,38 +383,28 @@ export default function Home() {
               </div>
             </div>
 
-            <div className="attroxx-surface relative overflow-hidden rounded-2xl border border-slate-800/90 px-4 py-3.5">
-              <div className="absolute inset-x-0 top-0 h-[2px] bg-gradient-to-r from-amber-400/90 via-amber-400/40 to-transparent" />
-              <div className="flex items-center justify-between gap-2">
-                <span className="font-mono text-[11px] font-semibold uppercase tracking-[0.14em] text-slate-400">
-                  Mean Latency
-                </span>
-                <span className="flex h-7 w-7 items-center justify-center rounded-lg border border-amber-500/25 bg-amber-500/10 text-amber-400">
-                  <Clock className="h-3.5 w-3.5" />
-                </span>
+            <div className="p-5 rounded-2xl bg-[#101820] border border-slate-800 border-l-4 border-l-amber-500">
+              <div className="flex items-center justify-between text-sm font-medium text-slate-400">
+                <span>Mean Latency</span>
+                <Clock className="w-4 h-4 text-amber-400" />
               </div>
-              <div className="mt-2 flex items-baseline gap-1.5">
-                <span className="text-2xl font-semibold tracking-tight text-white tabular-nums xl:text-[1.7rem]">
+              <div className="mt-2.5 flex items-baseline gap-1.5">
+                <span className="text-3xl font-bold tracking-tight text-white">
                   {metrics.meanLatency}
                 </span>
-                <span className="font-mono text-xs text-slate-400">ms</span>
+                <span className="text-sm text-slate-400 font-mono">ms</span>
               </div>
               <div className="mt-1 text-xs text-slate-400">
                 L1 deterministic &lt; 0.2 ms
               </div>
             </div>
 
-            <div className="attroxx-surface relative overflow-hidden rounded-2xl border border-slate-800/90 px-4 py-3.5">
-              <div className="absolute inset-x-0 top-0 h-[2px] bg-gradient-to-r from-cyan-400/90 via-cyan-400/40 to-transparent" />
-              <div className="flex items-center justify-between gap-2">
-                <span className="font-mono text-[11px] font-semibold uppercase tracking-[0.14em] text-slate-400">
-                  Egress Canary
-                </span>
-                <span className="flex h-7 w-7 items-center justify-center rounded-lg border border-cyan-500/25 bg-cyan-500/10 text-cyan-300">
-                  <Lock className="h-3.5 w-3.5" />
-                </span>
+            <div className="p-5 rounded-2xl bg-[#101820] border border-slate-800 border-l-4 border-l-emerald-500">
+              <div className="flex items-center justify-between text-sm font-medium text-slate-400">
+                <span>Egress Canary</span>
+                <Lock className="w-4 h-4 text-emerald-400" />
               </div>
-              <div className="mt-2 text-2xl font-semibold tracking-tight text-emerald-300 xl:text-[1.7rem]">
+              <div className="mt-2.5 text-3xl font-bold tracking-tight text-emerald-400">
                 Sealed
               </div>
               <div className="mt-1 text-xs text-slate-400">
