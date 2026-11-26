@@ -1,0 +1,28 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" fill="none">
+  <defs>
+    <linearGradient id="attroxx-icon-bg" x1="2" y1="2" x2="30" y2="30" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#0C201B"/>
+      <stop offset="100%" stop-color="#050B12"/>
+    </linearGradient>
+    <linearGradient id="attroxx-icon-stroke" x1="2" y1="2" x2="30" y2="30" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#6EE7B7"/>
+      <stop offset="50%" stop-color="#10B981"/>
+      <stop offset="100%" stop-color="#22D3EE"/>
+    </linearGradient>
+    <linearGradient id="attroxx-icon-a" x1="16" y1="6.5" x2="16" y2="25" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#FFFFFF"/>
+      <stop offset="65%" stop-color="#D1FAE5"/>
+      <stop offset="100%" stop-color="#6EE7B7"/>
+    </linearGradient>
+    <linearGradient id="attroxx-icon-gate" x1="11.5" y1="18" x2="20.5" y2="21" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#34D399"/>
+      <stop offset="50%" stop-color="#22D3EE"/>
+      <stop offset="100%" stop-color="#67E8F9"/>
+    </linearGradient>
+  </defs>
+  <rect x="1.5" y="1.5" width="29" height="29" rx="7" fill="url(#attroxx-icon-bg)" stroke="url(#attroxx-icon-stroke)" stroke-width="1.4"/>
+  <rect x="3.75" y="3.75" width="24.5" height="24.5" rx="5" stroke="#34D399" stroke-opacity="0.2" stroke-width="0.75"/>
+  <path d="M14.3 7.1H17.7L24.6 24.4H21.1L16 11.4L10.9 24.4H7.4L14.3 7.1Z" fill="url(#attroxx-icon-a)"/>
+  <path d="M12.2 18.6H19.8L19.1 20.9H12.9L12.2 18.6Z" fill="url(#attroxx-icon-gate)"/>
+  <path d="M16 14.3L17.3 16.4H14.7L16 14.3Z" fill="#22D3EE"/>
+</svg>
