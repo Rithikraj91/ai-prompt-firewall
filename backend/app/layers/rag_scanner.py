@@ -36,7 +36,7 @@ _TREE_PREFIX = re.compile(r"^\s*(?:\|--|├──|└──|\+--|\\--)\s*")
 # These are direct, high-confidence document-level instruction signatures.
 _HARD_SIGNATURES = [
     re.compile(r"\bignore\s+(?:all\s+)?(?:the\s+)?(?:previous|prior|above|earlier)\s+(?:instructions?|rules?|prompts?)\b", re.I),
-    re.compile(r"\[\s*system\s+note\s*:", re.I),
+    re.compile(r"\[\s*system\s+(?:note|override)\s*\]?\s*:", re.I),
     re.compile(r"\[\s*inst\s*\]", re.I),
     re.compile(r"<<\s*sys\s*>>", re.I),
     re.compile(r"<\s*(?:system|developer)\s*>\s*(?:override|instruction|prompt)", re.I),
