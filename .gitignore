@@ -15,3 +15,7 @@ out/
 .env
 .env.local
 .DS_Store
+
+.backup_before_claude/
+frontend_backup_*/
+attroxx_frontend_code.txt
