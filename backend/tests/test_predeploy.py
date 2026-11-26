@@ -2,13 +2,7 @@ import asyncio
 import base64
 import pytest
 from httpx import ASGITransport, AsyncClient
-from app.database import init_db
 from app.main import app
-
-
-@pytest.fixture(autouse=True)
-async def ensure_db():
-    await init_db()
 
 
 @pytest.mark.asyncio
