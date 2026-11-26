@@ -36,7 +36,7 @@ _TREE_PREFIX = re.compile(r"^\s*(?:\|--|├──|└──|\+--|\\--)\s*")
 # These are direct, high-confidence document-level instruction signatures.
 _HARD_SIGNATURES = [
     re.compile(r"\bignore\s+(?:all\s+)?(?:the\s+)?(?:previous|prior|above|earlier)\s+(?:instructions?|rules?|prompts?)\b", re.I),
-    re.compile(r"\[\s*system\s+(?:note|override)\s*\]?\s*:", re.I),
+    re.compile(r"\[\s*system\s+note\s*:", re.I),
     re.compile(r"\[\s*inst\s*\]", re.I),
     re.compile(r"<<\s*sys\s*>>", re.I),
     re.compile(r"<\s*(?:system|developer)\s*>\s*(?:override|instruction|prompt)", re.I),
@@ -257,9 +257,16 @@ async def inspect_rag_document(raw_bytes: bytes, filename: str) -> dict:
             clean_count += 1
             continue
         scored.append((score, index, chunk))
-    # Metadata values already passed Stage 1a deterministic signature checks;
-    # do not escalate standard PDF /Title or /Author fields to L3 on keyword noise alone.
-    pass
+    # Metadata values are scored too, separately, but no creator/producer values
+    # are present by extraction policy.
+    for index, meta in enumerate(meta_chunks):
+        try:
+            score = await _local_score(meta)
+        except Exception:
+            score = 0.0
+            score_failures += 1
+        if score >= CANDIDATE_MIN:
+            scored.append((score, -index-1, meta))
 
     # Deduplicate and retain the top five suspected regions.
     dedup = {}
@@ -282,10 +289,7 @@ async def inspect_rag_document(raw_bytes: bytes, filename: str) -> dict:
 
     semaphore = asyncio.Semaphore(L3_CONCURRENCY)
     judged = await asyncio.gather(*(_judge_region(region, semaphore) for _, _, region in candidates))
-    if label in {"Resume / CV", "Technical Documentation"}:
-        blocks = [r for r in judged if r.get("blocked")]
-    else:
-        blocks = [r for r in judged if r.get("blocked") or r.get("warn") or r.get("failed")]
+    blocks = [r for r in judged if r.get("blocked") or r.get("warn") or r.get("failed")]
     if blocks:
         worst = max(blocks, key=lambda r: float(r.get("risk_score", 0.0)))
         reason = str(worst.get("detail", "Suspected region blocked by L3"))
