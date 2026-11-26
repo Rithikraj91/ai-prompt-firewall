@@ -6,11 +6,11 @@ from contextlib import asynccontextmanager
 
 import httpx
 from dotenv import load_dotenv
-from fastapi import FastAPI, File, HTTPException, UploadFile
+from fastapi import FastAPI, File, HTTPException, Request, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse, StreamingResponse
 from pydantic import BaseModel
-from pypdf import PdfReader
+from app.layers.rag_scanner import inspect_rag_document
 
 from app.database import get_recent_logs, init_db, log_event
 from app.layers.L2_classifier import load_onnx_classifier
@@ -20,6 +20,13 @@ from app.layers.egress import (
     scan_egress_output,
 )
 from app.pipeline import run_security_pipeline
+from app.security import (
+    enforce_rate_limit,
+    get_gateway_policy,
+    redact_secrets,
+    validate_upstream_url,
+    verify_gateway_auth,
+)
 
 load_dotenv()
 
@@ -37,7 +44,7 @@ async def lifespan(app: FastAPI):
     yield
 
 
-app = FastAPI(title="Aegis-LLM Prompt Injection Firewall", version="1.0.0", lifespan=lifespan)
+app = FastAPI(title="ATTROXX Runtime AI Firewall", version="2.0.0", lifespan=lifespan)
 
 app.add_middleware(
     CORSMiddleware,
@@ -65,24 +72,80 @@ async def broadcast_event(event: dict):
         await queue.put(event)
 
 
+def sanitize_telemetry(inspection: dict) -> dict:
+    """Redacts API keys/tokens before persisting to SQLite or streaming over SSE."""
+    clean = dict(inspection)
+    if "raw_prompt" in clean:
+        clean["raw_prompt"] = redact_secrets(clean["raw_prompt"])
+    if "normalized_prompt" in clean:
+        clean["normalized_prompt"] = redact_secrets(clean["normalized_prompt"])
+    return clean
+
+
 @app.get("/health")
 async def health_check():
-    return {"status": "online", "proxy": "Aegis-LLM v1.0"}
+    policy = get_gateway_policy()
+    return {
+        "status": "online",
+        "proxy": "ATTROXX v2.0",
+        "policy": policy,
+        "upstream_valid": validate_upstream_url(TARGET_LLM_URL),
+    }
+
+
+@app.get("/v1/gateway-policy")
+async def gateway_policy_endpoint():
+    return get_gateway_policy()
+
+
+@app.get("/v1/benchmarks")
+async def get_benchmark_results():
+    bench_file = os.path.join(os.path.dirname(__file__), "..", "benchmarks", "latest_results.json")
+    if not os.path.exists(bench_file):
+        return {"available": False}
+    with open(bench_file, "r", encoding="utf-8") as f:
+        data = json.load(f)
+    data["available"] = True
+    return data
 
 
 @app.post("/v1/chat/completions")
-async def proxy_chat_completions(req: ChatCompletionRequest):
+async def proxy_chat_completions(req: ChatCompletionRequest, request: Request):
+    client_id = verify_gateway_auth(request)
+    rl = enforce_rate_limit(request, client_id)
+    policy = get_gateway_policy()
+
     user_messages = [m.content for m in req.messages if m.role == "user"]
     latest_prompt = user_messages[-1] if user_messages else ""
 
-    inspection = await run_security_pipeline(latest_prompt, force_judge=req.force_judge)
+    try:
+        inspection = await run_security_pipeline(latest_prompt, force_judge=req.force_judge)
+    except Exception as exc:
+        if policy["failure_mode"] == "fail_closed":
+            raise HTTPException(
+                status_code=503,
+                detail=f"ATTROXX Fail-Closed Policy: inspection pipeline unavailable ({type(exc).__name__})",
+            )
+        inspection = {
+            "raw_prompt": latest_prompt,
+            "normalized_prompt": latest_prompt,
+            "verdict": "ALLOWED",
+            "risk_score": 0.0,
+            "blocked_layer": None,
+            "category": "Fail-Open Bypass",
+            "total_latency_ms": 0.1,
+            "stages": [],
+        }
+
     inspection["source"] = req.source
+    clean_inspection = sanitize_telemetry(inspection)
 
     if inspection["verdict"] == "BLOCKED":
-        saved_event = await log_event(inspection)
+        saved_event = await log_event(clean_inspection)
         await broadcast_event(saved_event)
         return JSONResponse(
             status_code=403,
+            headers={"X-RateLimit-Remaining": str(rl["remaining"])},
             content={
                 "error": {
                     "message": f"Prompt blocked by {inspection['blocked_layer']} ({inspection['category']})",
@@ -99,6 +162,11 @@ async def proxy_chat_completions(req: ChatCompletionRequest):
 
     data = None
     if TARGET_LLM_API_KEY:
+        if not validate_upstream_url(TARGET_LLM_URL):
+            raise HTTPException(
+                status_code=502,
+                detail="Blocked upstream connection: TARGET_LLM_URL is not in ATTROXX_ALLOWED_UPSTREAMS.",
+            )
         headers = {
             "Authorization": f"Bearer {TARGET_LLM_API_KEY}",
             "Content-Type": "application/json",
@@ -136,20 +204,22 @@ async def proxy_chat_completions(req: ChatCompletionRequest):
     egress_check = scan_egress_output(assistant_reply, canary)
 
     if egress_check["blocked"]:
-        inspection["verdict"] = "BLOCKED"
-        inspection["risk_score"] = 1.0
-        inspection["blocked_layer"] = "Egress Guard (Canary/Leak)"
-        inspection["category"] = "Data / Prompt Exfiltration"
-        inspection["stages"][-1] = {
-            "name": "L3: Judge & Egress Guard",
-            "status": "BLOCK",
-            "latency_ms": 0.2,
-            "detail": egress_check["reason"],
-        }
-        saved_event = await log_event(inspection)
+        clean_inspection["verdict"] = "BLOCKED"
+        clean_inspection["risk_score"] = 1.0
+        clean_inspection["blocked_layer"] = "Egress Guard (Canary/Leak)"
+        clean_inspection["category"] = "Data / Prompt Exfiltration"
+        if clean_inspection.get("stages"):
+            clean_inspection["stages"][-1] = {
+                "name": "L3: Judge & Egress Guard",
+                "status": "BLOCK",
+                "latency_ms": 0.2,
+                "detail": egress_check["reason"],
+            }
+        saved_event = await log_event(clean_inspection)
         await broadcast_event(saved_event)
         return JSONResponse(
             status_code=403,
+            headers={"X-RateLimit-Remaining": str(rl["remaining"])},
             content={
                 "error": {
                     "message": egress_check["reason"],
@@ -159,33 +229,35 @@ async def proxy_chat_completions(req: ChatCompletionRequest):
             },
         )
 
-    saved_event = await log_event(inspection)
+    saved_event = await log_event(clean_inspection)
     await broadcast_event(saved_event)
     data["security_telemetry"] = saved_event
-    return data
+    return JSONResponse(
+        status_code=200,
+        headers={"X-RateLimit-Remaining": str(rl["remaining"])},
+        content=data,
+    )
 
 
 @app.post("/v1/scan-document")
-async def scan_rag_document(file: UploadFile = File(...)):
-    """Scans uploaded PDF or TXT files for Indirect RAG Prompt Injections before LLM ingestion."""
+async def scan_rag_document(request: Request, file: UploadFile = File(...)):
+    """Scans PDF metadata & overlapping text chunks for Indirect RAG Prompt Injections."""
+    client_id = verify_gateway_auth(request)
+    enforce_rate_limit(request, client_id)
+
     raw_bytes = await file.read()
     filename = file.filename or "uploaded_doc"
 
-    if filename.lower().endswith(".pdf"):
-        reader = PdfReader(io.BytesIO(raw_bytes))
-        extracted_text = "\n".join(page.extract_text() or "" for page in reader.pages)
-    else:
-        extracted_text = raw_bytes.decode("utf-8", errors="ignore")
+    scan_result = await inspect_rag_document(raw_bytes, filename)
+    if scan_result.get("extraction_error"):
+        raise HTTPException(
+            status_code=scan_result.get("status_code", 400),
+            detail=scan_result["extraction_error"],
+        )
 
-    if not extracted_text.strip():
-        raise HTTPException(status_code=400, detail="No readable text found in uploaded document.")
-
-    inspection = await run_security_pipeline(extracted_text)
-    inspection["source"] = f"rag_doc:{filename}"
-    if inspection["verdict"] == "BLOCKED":
-        inspection["category"] = f"Indirect RAG ({inspection['category']})"
-
-    saved_event = await log_event(inspection)
+    inspection = scan_result["inspection"]
+    clean_inspection = sanitize_telemetry(inspection)
+    saved_event = await log_event(clean_inspection)
     await broadcast_event(saved_event)
 
     if inspection["verdict"] == "BLOCKED":
@@ -196,7 +268,9 @@ async def scan_rag_document(file: UploadFile = File(...)):
                     "message": f"Indirect injection detected inside '{filename}' by {inspection['blocked_layer']}",
                     "type": "indirect_rag_injection",
                 },
-                "extracted_preview": extracted_text[:300],
+                "chunks_scanned": scan_result["chunks_scanned"],
+                "page_count": scan_result["page_count"],
+                "extracted_preview": redact_secrets(scan_result["extracted_preview"]),
                 "security_telemetry": saved_event,
             },
         )
@@ -204,7 +278,9 @@ async def scan_rag_document(file: UploadFile = File(...)):
     return {
         "status": "SAFE_FOR_RAG",
         "filename": filename,
-        "extracted_preview": extracted_text[:300],
+        "chunks_scanned": scan_result["chunks_scanned"],
+        "page_count": scan_result["page_count"],
+        "extracted_preview": redact_secrets(scan_result["extracted_preview"]),
         "security_telemetry": saved_event,
     }
 

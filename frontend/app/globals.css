@@ -1,27 +1,162 @@
+
 @import "tailwindcss";
 
 :root {
-  color-scheme: dark;
+  --background: #080c10;
+  --foreground: #e6edf3;
+  --panel: #0d141b;
+  --panel-border: rgba(148,163,184,.10);
+  --accent: #10b981;
+  --accent-soft: rgba(16,185,129,.10);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
 }
 
 body {
-  background-color: #0b0f19;
-  color: #f8fafc;
-  font-feature-settings: "cv02", "cv03", "cv04", "cv11";
-  -webkit-font-smoothing: antialiased;
+  margin: 0;
+  background:
+    radial-gradient(ellipse at 10% 0%, rgba(16,185,129,.055), transparent 32%),
+    radial-gradient(ellipse at 85% 0%, rgba(6,182,212,.035), transparent 28%),
+    var(--background);
+  color: var(--foreground);
+  font-family: Arial, Helvetica, sans-serif;
+  min-height: 100vh;
+}
+
+::selection {
+  background: rgba(16,185,129,.30);
+  color: #ffffff;
 }
 
 ::-webkit-scrollbar {
-  width: 6px;
-  height: 6px;
+  width: 7px;
+  height: 7px;
 }
+
 ::-webkit-scrollbar-track {
-  background: #0b0f19;
+  background: #080c10;
 }
+
 ::-webkit-scrollbar-thumb {
-  background: #1e293b;
-  border-radius: 3px;
+  background: #263442;
+  border-radius: 12px;
 }
+
 ::-webkit-scrollbar-thumb:hover {
-  background: #334155;
+  background: #10b981;
+}
+
+* {
+  scrollbar-width: thin;
+  scrollbar-color: #263442 #080c10;
+}
+
+button, a, input, textarea, select {
+  transition: background-color .18s ease,
+              border-color .18s ease,
+              color .18s ease,
+              box-shadow .18s ease,
+              transform .18s ease;
+}
+
+button:focus-visible,
+input:focus-visible,
+textarea:focus-visible,
+select:focus-visible {
+  outline: 2px solid #10b981;
+  outline-offset: 2px;
+}
+
+button:hover {
+  transition: all .18s ease;
+}
+
+input, textarea, select {
+  color-scheme: dark;
+}
+
+img {
+  max-width: 100%;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    scroll-behavior: auto !important;
+    transition-duration: 0.01ms !important;
+    animation-duration: 0.01ms !important;
+  }
+}
+
+
+/* ATTROXX layout refinement */
+:root {
+  --panel-border-soft: rgba(148, 163, 184, .08);
+}
+
+main {
+  min-width: 0;
+}
+
+main > * {
+  min-width: 0;
+}
+
+aside {
+  scrollbar-width: thin;
+}
+
+/* Reduce visual noise from deeply nested surfaces */
+[class*="border-slate-800"] {
+  border-color: rgba(148, 163, 184, .10);
+}
+
+/* Cleaner, quieter event ticker */
+.attroxx-ticker {
+  scrollbar-width: thin;
+  overscroll-behavior-x: contain;
+}
+
+.attroxx-ticker::-webkit-scrollbar {
+  height: 3px;
+}
+
+.attroxx-ticker::-webkit-scrollbar-thumb {
+  background: #263442;
+}
+
+/* Consistent interaction without excessive movement */
+button:hover:not(:disabled) {
+  filter: brightness(1.06);
+}
+
+button:active:not(:disabled) {
+  transform: scale(.985);
+}
+
+/* Keep large data areas readable */
+pre, code {
+  overflow-wrap: anywhere;
+}
+
+/* Responsive workspace spacing */
+@media (max-width: 1024px) {
+  main {
+    padding: 1rem !important;
+  }
+}
+
+@media (max-width: 640px) {
+  header {
+    flex-wrap: wrap;
+  }
+
+  main {
+    padding: .75rem !important;
+  }
 }
