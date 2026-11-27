@@ -78,7 +78,7 @@ def scan_layer1(text: str) -> dict:
             }
 
     for token in text.split():
-        if len(token) >= 40 and not token.startswith("http"):
+        if len(token) >= 40 and not token.startswith("http") and not re.fullmatch(r"[A-Za-z0-9_-]+(?:\.[A-Za-z0-9_-]+){2,}", token):
             entropy = _shannon_entropy(token)
             if entropy > 4.6:
                 return {
