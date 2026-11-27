@@ -233,8 +233,8 @@ _HARD_SIGNATURES: list[tuple[str, re.Pattern]] = [
 ]
 
 
-_QUOTED_WRAP_RE = re.compile(r'["\u201c\u2018']\s*$')
-_QUOTED_END_RE = re.compile(r'^\s*["\u201d\u2019']')
+_QUOTED_WRAP_RE = re.compile(r'''["'\u201c\u2018]\s*$''')
+_QUOTED_END_RE = re.compile(r'''^\s*["'\u201d\u2019]''')
 
 
 def _is_quoted_match(source: str, m: re.Match) -> bool:
