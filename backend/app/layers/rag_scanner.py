@@ -233,11 +233,29 @@ _HARD_SIGNATURES: list[tuple[str, re.Pattern]] = [
 ]
 
 
+_QUOTED_WRAP_RE = re.compile(r'["\u201c\u2018']\s*$')
+_QUOTED_END_RE = re.compile(r'^\s*["\u201d\u2019']')
+
+
+def _is_quoted_match(source: str, m: re.Match) -> bool:
+    before = source[max(0, m.start() - 4):m.start()]
+    after = source[m.end():min(len(source), m.end() + 4)]
+    return bool(_QUOTED_WRAP_RE.search(before) and _QUOTED_END_RE.search(after))
+
+
 def _scan_hard_signatures(text: str) -> list[str]:
     flat = re.sub(r"\s+", " ", text)
     hits = []
     for name, pat in _HARD_SIGNATURES:
-        if pat.search(text) or pat.search(flat):
+        matched = False
+        for candidate in (text, flat):
+            for m in pat.finditer(candidate):
+                if not _is_quoted_match(candidate, m):
+                    matched = True
+                    break
+            if matched:
+                break
+        if matched:
             hits.append(name)
     return hits
 

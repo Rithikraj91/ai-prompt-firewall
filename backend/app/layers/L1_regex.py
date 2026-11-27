@@ -31,6 +31,12 @@ ATTACK_SIGNATURES = [
 ]
 
 
+_Q_OPEN = re.compile(r'["\u201c\u2018']\s*$')
+_Q_CLOSE = re.compile(r'^\s*["\u201d\u2019']')
+
+def _is_quoted_l1(src: str, m: re.Match) -> bool:
+    return bool(_Q_OPEN.search(src[max(0, m.start()-4):m.start()]) and _Q_CLOSE.search(src[m.end():min(len(src), m.end()+4)]))
+
 def _shannon_entropy(text: str) -> float:
     if not text:
         return 0.0
@@ -69,7 +75,7 @@ def scan_layer1(text: str) -> dict:
         match = pattern.search(text)
         if match and _is_benign_explanatory_context(text, category, match):
             continue
-        if match:
+        if match and not _is_quoted_l1(text, match):
             return {
                 "blocked": True,
                 "risk_score": 0.99,
