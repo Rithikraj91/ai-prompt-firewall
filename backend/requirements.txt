@@ -21,6 +21,4 @@ typing_extensions==4.16.0
 uvicorn==0.54.0
 joblib
 scikit-learn
-sentence-transformers
 reportlab
-pytest-asyncio
