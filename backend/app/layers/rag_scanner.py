@@ -28,7 +28,7 @@ logger = logging.getLogger(__name__)
 # --------------------------------------------------------------------------- #
 # Tunables
 # --------------------------------------------------------------------------- #
-GENERAL_THRESHOLD = 0.45          # candidate escalation threshold (was 0.40)
+GENERAL_THRESHOLD = 0.45          # candidate escalation threshold for generic docs
 STRUCTURED_DOC_THRESHOLD = 0.78   # resumes / technical docs / reports
 FAIL_CLOSED_LOCAL_RISK = 0.88     # block if judge unavailable AND local risk >= this
 MAX_CANDIDATES = 3
@@ -365,13 +365,6 @@ async def _call_judge(text: str) -> Any:
     return res
 
 
-async def _judge_region(region: str, semaphore: asyncio.Semaphore | None = None) -> dict:
-    if semaphore is not None:
-        async with semaphore:
-            return await _judge_region_inner(region)
-    return await _judge_region_inner(region)
-
-
 async def _judge_region_inner(region: str) -> dict:
     """Returns {"blocked": bool, "unavailable": bool, "detail": str}."""
     prompt = _JUDGE_RUBRIC + region
@@ -401,6 +394,13 @@ async def _judge_region_inner(region: str) -> dict:
         return {"blocked": False, "unavailable": False,
                 "detail": str(_get(res, "detail", None) or _get(res, "reason", None) or "L3 judge: benign")}
     return {"blocked": False, "unavailable": True, "detail": last_detail or "L3 judge retries exhausted"}
+
+
+async def _judge_region(region: str, semaphore: asyncio.Semaphore | None = None) -> dict:
+    if semaphore is not None:
+        async with semaphore:
+            return await _judge_region_inner(region)
+    return await _judge_region_inner(region)
 
 
 # --------------------------------------------------------------------------- #
