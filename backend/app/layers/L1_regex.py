@@ -31,8 +31,8 @@ ATTACK_SIGNATURES = [
 ]
 
 
-_Q_OPEN = re.compile(r'["\u201c\u2018']\s*$')
-_Q_CLOSE = re.compile(r'^\s*["\u201d\u2019']')
+_Q_OPEN = re.compile(r'''["'\u201c\u2018]\s*$''')
+_Q_CLOSE = re.compile(r'''^\s*["'\u201d\u2019]''')
 
 def _is_quoted_l1(src: str, m: re.Match) -> bool:
     return bool(_Q_OPEN.search(src[max(0, m.start()-4):m.start()]) and _Q_CLOSE.search(src[m.end():min(len(src), m.end()+4)]))
